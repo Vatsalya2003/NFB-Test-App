@@ -1,3 +1,6 @@
+// FeedbackCustomizationTesterView.swift
+// Dev tool on home screen — preview map and try different haptic patterns per element.
+
 import SwiftUI
 import MapKit
 import CoreHaptics

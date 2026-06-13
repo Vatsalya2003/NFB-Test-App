@@ -2,6 +2,8 @@
 //  NFB_TestApp.swift
 //  NFB Test
 //
+//  App entry point. Just launches the home screen (RouteContentView).
+//
 
 import SwiftUI
 

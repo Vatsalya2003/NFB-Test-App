@@ -1,8 +1,6 @@
 //
 //  SpeechSynthesizerManager.swift
-//  NFB Test
-//
-//  Created by Kenish Raghu on 6/25/25.
+//  Wraps AVSpeechSynthesizer — speaks text out loud for map feedback.
 //
 
 import AVFoundation

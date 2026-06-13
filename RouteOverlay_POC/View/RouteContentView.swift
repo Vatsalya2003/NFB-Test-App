@@ -1,3 +1,6 @@
+// RouteContentView.swift
+// Home screen — pick a route (Marriott ↔ JW) or open dev tools.
+
 import SwiftUI
 
 /// Main entry point for Route Overlay POC app
@@ -27,12 +30,27 @@ struct RouteContentView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
                     
-                    NavigationLink(destination: RouteStudyView()) {
+                    NavigationLink(destination: RouteStudyView(
+                        title: "Marriott → JW Marriott",
+                        routeFile: "route_marriott_to_jwmarriott"
+                    )) {
                         StudyOptionButton(
                             title: "Marriott → JW Marriott",
-                            description: "Austin downtown grid route",
+                            description: "East 2nd St → Brazos St → East 1st St",
                             systemImage: "arrow.triangle.turn.up.right.diamond",
                             color: .green
+                        )
+                    }
+
+                    NavigationLink(destination: RouteStudyView(
+                        title: "JW Marriott → Marriott",
+                        routeFile: "route_jwmarriott_to_marriott"
+                    )) {
+                        StudyOptionButton(
+                            title: "JW Marriott → Marriott",
+                            description: "East 1st St → Brazos St → East 2nd St",
+                            systemImage: "arrow.triangle.turn.up.right.diamond",
+                            color: .blue
                         )
                     }
                 }
@@ -106,26 +124,6 @@ struct StudyOptionButton: View {
         .background(color.opacity(0.1))
         .cornerRadius(10)
         .padding(.horizontal)
-    }
-}
-
-struct LegendItem: View {
-    let color: Color
-    let label: String
-    let feedback: String
-    
-    var body: some View {
-        VStack(spacing: 4) {
-            Circle()
-                .fill(color)
-                .frame(width: 16, height: 16)
-            Text(label)
-                .font(.caption2)
-                .fontWeight(.medium)
-            Text(feedback)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
     }
 }
 

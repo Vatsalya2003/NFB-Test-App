@@ -1,3 +1,7 @@
+// MapDesignerView.swift
+// On-device tool to draw corridors on a grid and export testMap_Condition1.json.
+// Uses SwiftUI Canvas (no MapKit). Preview matches the live app's stretch + viewport.
+
 import SwiftUI
 
 /// A model representing a corridor while it is being designed on-canvas.
@@ -25,7 +29,7 @@ struct MapDesignerView: View {
     @State private var lastTapPoint = CGPoint.zero
     @State private var corridorCounter = 0
 
-    private let roadColor = Color(red: 0.18, green: 0.52, blue: 0.62)
+    private let roadColor = Color(red: 0x02 / 255.0, green: 0x3e / 255.0, blue: 0x8a / 255.0)
     private let background = Color(red: 0.118, green: 0.118, blue: 0.118)
 
     // MARK: - Live-app transform (mirrors RouteMapView rendering)
@@ -114,10 +118,9 @@ struct MapDesignerView: View {
                 path.addLine(to: screen(pt, size))
             }
             let isSelected = c.id == selectedID
-            let color = Color(MapRoadStyle.color(for: c.jsonId))
             ctx.stroke(
                 path,
-                with: .color(isSelected ? .yellow : color),
+                with: .color(isSelected ? .yellow : roadColor),
                 style: StrokeStyle(lineWidth: isSelected ? 10 : 8, lineCap: .round, lineJoin: .round)
             )
         }

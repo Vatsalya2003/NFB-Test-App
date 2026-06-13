@@ -1,3 +1,7 @@
+// FeedbackManager.swift
+// Central hub — calls HapticService + SpeechService when user touches map features.
+// Use FeedbackManager.shared from anywhere instead of calling haptics directly.
+
 import SenseKit
 import AVFoundation
 import UIKit

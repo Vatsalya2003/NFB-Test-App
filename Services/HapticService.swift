@@ -1,3 +1,6 @@
+// HapticService.swift
+// CoreHaptics engine — corridor continuous vibe, intersection slow pulse, landmark fast pulse.
+
 import CoreHaptics
 import AVFoundation
 import AudioToolbox

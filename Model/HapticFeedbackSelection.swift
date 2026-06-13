@@ -1,3 +1,6 @@
+// HapticFeedbackSelection.swift
+// Stores which haptic pattern goes with each map element type (for Feedback Tester tool).
+
 import Foundation
 
 // MARK: - Map Element Types

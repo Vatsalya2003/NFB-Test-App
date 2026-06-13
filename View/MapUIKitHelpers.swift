@@ -1,30 +1,59 @@
+// MapUIKitHelpers.swift
+// Shared map settings: colors, mm sizes, fixed viewport, blank white tiles.
+// All visual constants (road blue, intersection red, etc.) live here.
+
 import MapKit
 
 enum MapRoadStyle {
-    static let blue = UIColor(red: 0.18, green: 0.52, blue: 0.62, alpha: 0.85)
+    /// Road blue (#023e8a).
+    static let blue = UIColor(red: 0x02 / 255.0, green: 0x3e / 255.0, blue: 0x8a / 255.0, alpha: 1.0)
     static let lineWidthMM: CGFloat = 4.0
+}
 
-    /// Distinct colors so each corridor is visually separable while designing.
-    static let palette: [UIColor] = [
-        UIColor(red: 0.18, green: 0.52, blue: 0.62, alpha: 0.95), // teal
-        UIColor(red: 0.90, green: 0.30, blue: 0.24, alpha: 0.95), // red
-        UIColor(red: 0.18, green: 0.65, blue: 0.34, alpha: 0.95), // green
-        UIColor(red: 0.95, green: 0.61, blue: 0.07, alpha: 0.95), // orange
-        UIColor(red: 0.51, green: 0.30, blue: 0.78, alpha: 0.95), // purple
-        UIColor(red: 0.85, green: 0.33, blue: 0.60, alpha: 0.95), // pink
-        UIColor(red: 0.40, green: 0.45, blue: 0.50, alpha: 0.95), // slate
-        UIColor(red: 0.10, green: 0.40, blue: 0.85, alpha: 0.95), // blue
-    ]
+enum MapIntersectionStyle {
+    /// Intersection red (#c1121f).
+    static let red = UIColor(red: 0xc1 / 255.0, green: 0x12 / 255.0, blue: 0x1f / 255.0, alpha: 1.0)
+    static let sideMM: CGFloat = 5.0
+}
 
-    /// Stable per-corridor color keyed off the trailing number in its id ("c_3" -> index 2).
-    static func color(for id: String?) -> UIColor {
-        guard let id = id else { return blue }
-        let digits = id.drop { !$0.isNumber }
-        if let n = Int(digits), n > 0 {
-            return palette[(n - 1) % palette.count]
+enum MapRouteStyle {
+    /// Route line (#48cae4).
+    static let color = UIColor(red: 0x48 / 255.0, green: 0xca / 255.0, blue: 0xe4 / 255.0, alpha: 1.0)
+    static let lineWidthMM: CGFloat = 3.5
+}
+
+enum MapLandmarkStyle {
+    /// Landmark marker (#7b2cbf) — a small tagged box placed beside the road.
+    static let color = UIColor(red: 0x7b / 255.0, green: 0x2c / 255.0, blue: 0xbf / 255.0, alpha: 1.0)
+    static let diameterMM: CGFloat = 6.0
+
+    /// Box (building marker) sizing, in physical mm.
+    static let boxWidthMM: CGFloat = 9.0
+    static let boxHeightMM: CGFloat = 6.0
+    static let cornerRadiusMM: CGFloat = 1.2
+    static let borderWidthMM: CGFloat = 0.5
+    /// Gap between the road edge and the landmark box edge.
+    static let gapMM: CGFloat = 2.0
+
+    /// Screen-point offset that pushes the box to the side of the road.
+    /// Anchor stays on the road centerline; offset accounts for road half-width + gap + box half-width.
+    static func sideOffset(_ side: String) -> CGPoint {
+        let halfRoad = PhysicalDimensions.mmToPoints(MapRoadStyle.lineWidthMM) / 2
+        let gap = PhysicalDimensions.mmToPoints(gapMM)
+        let halfBox = PhysicalDimensions.mmToPoints(boxWidthMM) / 2
+        let dx = halfRoad + gap + halfBox
+        switch side.lowercased() {
+        case "right": return CGPoint(x: dx, y: 0)
+        case "left": return CGPoint(x: -dx, y: 0)
+        default: return .zero
         }
-        return palette[abs(id.hashValue) % palette.count]
     }
+}
+
+enum MapDestinationStyle {
+    /// Yellow dot marking the route end / point of interest.
+    static let color = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0)
+    static let diameterMM: CGFloat = 4.0
 }
 
 enum MapFixedViewport {

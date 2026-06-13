@@ -22,7 +22,7 @@
         ]
       },
       "properties": {
-        "name": "Road 1",
+        "name": "East 1st Street",
         "level": 1,
         "accessible": true
       }
@@ -34,17 +34,17 @@
         "type": "LineString",
         "coordinates": [
           [
-            700,
+            650,
             400
           ],
           [
-            700,
+            650,
             700
           ]
         ]
       },
       "properties": {
-        "name": "Road 2",
+        "name": "East 2nd Street",
         "level": 1,
         "accessible": true
       }
@@ -60,13 +60,13 @@
             700
           ],
           [
-            700,
+            650,
             700
           ]
         ]
       },
       "properties": {
-        "name": "Road 3",
+        "name": "Trinity Street",
         "level": 1,
         "accessible": true
       }
@@ -82,13 +82,13 @@
             600
           ],
           [
-            700,
+            650,
             600
           ]
         ]
       },
       "properties": {
-        "name": "Road 4",
+        "name": "San Jacinto Boulevard",
         "level": 1,
         "accessible": true
       }
@@ -104,15 +104,75 @@
             500
           ],
           [
-            700,
+            650,
             500
           ]
         ]
       },
       "properties": {
-        "name": "Road 5",
+        "name": "Brazos Street",
         "level": 1,
         "accessible": true
+      }
+    },
+    {
+      "id": "i_1",
+      "type": "intersection",
+      "geometry": { "type": "Point", "coordinates": [300, 500] },
+      "properties": { "name": "East 1st Street and Brazos Street", "level": 1 }
+    },
+    {
+      "id": "i_2",
+      "type": "intersection",
+      "geometry": { "type": "Point", "coordinates": [300, 600] },
+      "properties": { "name": "East 1st Street and San Jacinto Boulevard", "level": 1 }
+    },
+    {
+      "id": "i_3",
+      "type": "intersection",
+      "geometry": { "type": "Point", "coordinates": [300, 700] },
+      "properties": { "name": "East 1st Street and Trinity Street", "level": 1 }
+    },
+    {
+      "id": "i_4",
+      "type": "intersection",
+      "geometry": { "type": "Point", "coordinates": [650, 500] },
+      "properties": { "name": "East 2nd Street and Brazos Street", "level": 1 }
+    },
+    {
+      "id": "i_5",
+      "type": "intersection",
+      "geometry": { "type": "Point", "coordinates": [650, 600] },
+      "properties": { "name": "East 2nd Street and San Jacinto Boulevard", "level": 1 }
+    },
+    {
+      "id": "i_6",
+      "type": "intersection",
+      "geometry": { "type": "Point", "coordinates": [650, 700] },
+      "properties": { "name": "East 2nd Street and Trinity Street", "level": 1 }
+    },
+    {
+      "id": "lm_jw",
+      "type": "landmark",
+      "geometry": { "type": "Point", "coordinates": [300, 640] },
+      "properties": {
+        "name": "JW Marriott Austin",
+        "tag": "JW",
+        "side": "right",
+        "announcement": "JW Marriott on your right",
+        "level": 1
+      }
+    },
+    {
+      "id": "lm_marriott",
+      "type": "landmark",
+      "geometry": { "type": "Point", "coordinates": [650, 455] },
+      "properties": {
+        "name": "Austin Marriott Downtown",
+        "tag": "AM",
+        "side": "right",
+        "announcement": "Austin Marriott Downtown on your right",
+        "level": 1
       }
     }
   ]

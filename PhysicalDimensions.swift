@@ -1,3 +1,7 @@
+// PhysicalDimensions.swift
+// Converts millimeters to screen points using each iPhone's PPI.
+// Used so roads/intersections stay the same physical size on every device.
+
 import CoreGraphics
 import Foundation
 import SwiftUI

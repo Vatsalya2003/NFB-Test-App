@@ -1,5 +1,6 @@
 //
 //  SpeechService.swift
+//  Builds landmark/intersection announcement phrases (natural language, spatial, icons).
 //
 
 import Foundation

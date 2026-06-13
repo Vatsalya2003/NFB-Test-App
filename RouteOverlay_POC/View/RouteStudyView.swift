@@ -1,3 +1,6 @@
+// RouteStudyView.swift
+// Loads the base map + one route file, then shows RouteMapView full screen.
+
 import SwiftUI
 import MapKit
 
@@ -14,10 +17,11 @@ struct RouteStudyView: View {
     let baseMapFile: String
     let title: String
     
-    init(title: String = "Marriott → JW Marriott") {
+    init(title: String = "Marriott → JW Marriott",
+         routeFile: String = "route_marriott_to_jwmarriott") {
         self.title = title
         self.baseMapFile = "testMap_Condition1"
-        self.routeFile = "testRoute_2"
+        self.routeFile = routeFile
     }
     
     var body: some View {
@@ -47,11 +51,11 @@ struct RouteStudyView: View {
         // Set to Natural Language mode (base modality for route study)
         FeedbackManager.shared.presentationMode = .naturalLanguage
         
-        // Load corridors only (roads-only phase — no landmarks/intersections/routes yet)
+        // Load base map (corridors + intersections + landmarks) and the selected route overlay.
         mapFeatures = MapDataLoader.loadMapFeatures(from: baseMapFile)
-        routes = []
+        routes = RouteMapDataLoader.loadRouteFeatures(from: routeFile)
         
-        print("Loaded \(mapFeatures.count) corridor features")
+        print("Loaded \(mapFeatures.count) map features and \(routes.count) route(s)")
         
         if UIAccessibility.isVoiceOverRunning {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {

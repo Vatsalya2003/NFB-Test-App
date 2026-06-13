@@ -1,10 +1,13 @@
+// RouteMapData.swift
+// Loads route_*.json files and applies the same Y stretch as the base map.
+
 import Foundation
 
 /// Manages route data loading and parsing
 class RouteMapDataLoader {
     
     // Same stretch factor as base map
-    static var stretchFactor: Double = 1.0
+    static var stretchFactor: Double = 2.6
     
     /// Load route features from JSON
     static func loadRouteFeatures(from filename: String) -> [RouteFeature] {
@@ -27,23 +30,8 @@ class RouteMapDataLoader {
             }
             
             // Stretch route coordinates to match base map
-            print("[ROUTE] Loaded route: \(id)")
-            for (i, coord) in coordinates.enumerated() {
-                print("[ROUTE] Raw JSON point \(i): \(coord)")
-            }
             let stretchedCoords = stretchCoordinates(coordinates, stretchFactor: stretchFactor)
-            for (i, coord) in stretchedCoords.enumerated() {
-                print("[TRANSFORM] Point \(i): Input: \(coordinates[i]), Output: \(coord)")
-            }
             let route = RouteFeature(id: id, coordinates: stretchedCoords, properties: properties)
-            for (i, coord) in route.coordinates.enumerated() {
-                print("[ROUTE] Final CLLocationCoordinate2D \(i): (\(coord.latitude), \(coord.longitude))")
-            }
-            if route.coordinates.count >= 2 {
-                for i in 0..<(route.coordinates.count - 1) {
-                    print("[ROUTE] Segment \(i): (\(route.coordinates[i].latitude), \(route.coordinates[i].longitude)) -> (\(route.coordinates[i+1].latitude), \(route.coordinates[i+1].longitude))")
-                }
-            }
             routes.append(route)
         }
         

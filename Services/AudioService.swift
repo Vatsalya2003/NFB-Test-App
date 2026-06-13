@@ -1,5 +1,6 @@
 //
 //  AudioService.swift
+//  Plays spatial audio and routes text-to-speech through SpeechSynthesizerManager.
 //
 
 import Foundation

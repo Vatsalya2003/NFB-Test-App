@@ -1,3 +1,7 @@
+// MapDataLoader.swift
+// Reads testMap_Condition1.json and creates corridor / intersection / landmark objects.
+// Applies 2.6x Y stretch so the map matches our fixed viewport layout.
+
 import Foundation
 
 class MapDataLoader {

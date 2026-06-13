@@ -12,7 +12,8 @@
 		C49820CD2F7EB74500B1E80F /* HapticFeedbackSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49820CC2F7EB74500B1E80F /* HapticFeedbackSelection.swift */; };
 		C49CDCBD2F15525F0010FDE4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C49CDC892F15525F0010FDE4 /* Assets.xcassets */; };
 		C49CDCC52F15525F0010FDE4 /* testMap_Condition1.json in Resources */ = {isa = PBXBuildFile; fileRef = C49CDC932F15525F0010FDE4 /* testMap_Condition1.json */; };
-		C49CDCC72F15525F0010FDE4 /* testRoute_2.json in Resources */ = {isa = PBXBuildFile; fileRef = C49CDCA12F15525F0010FDE4 /* testRoute_2.json */; };
+		C4A2DE520000000000000011 /* route_marriott_to_jwmarriott.json in Resources */ = {isa = PBXBuildFile; fileRef = C4A2DE520000000000000010 /* route_marriott_to_jwmarriott.json */; };
+		C4A2DE520000000000000021 /* route_jwmarriott_to_marriott.json in Resources */ = {isa = PBXBuildFile; fileRef = C4A2DE520000000000000020 /* route_jwmarriott_to_marriott.json */; };
 		C49CDCC92F15525F0010FDE4 /* SpeechSynthesizerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49CDCB12F15525F0010FDE4 /* SpeechSynthesizerManager.swift */; };
 		C4A200012F4000010010FDE4 /* MapUIKitHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A200022F4000010010FDE4 /* MapUIKitHelpers.swift */; };
 		C49CDCCB2F15525F0010FDE4 /* CorridorFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49CDC8D2F15525F0010FDE4 /* CorridorFeature.swift */; };
@@ -67,11 +68,12 @@
 		C49CDC902F15525F0010FDE4 /* LandmarkFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkFeature.swift; sourceTree = "<group>"; };
 		C49CDC912F15525F0010FDE4 /* MapFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapFeature.swift; sourceTree = "<group>"; };
 		C49CDC932F15525F0010FDE4 /* testMap_Condition1.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = testMap_Condition1.json; sourceTree = "<group>"; };
+		C4A2DE520000000000000010 /* route_marriott_to_jwmarriott.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = route_marriott_to_jwmarriott.json; sourceTree = "<group>"; };
+		C4A2DE520000000000000020 /* route_jwmarriott_to_marriott.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = route_jwmarriott_to_marriott.json; sourceTree = "<group>"; };
 		C49CDC9B2F15525F0010FDE4 /* PhysicalDimensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalDimensions.swift; sourceTree = "<group>"; };
 		C49CDC9C2F15525F0010FDE4 /* FeedbackManager+Route.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedbackManager+Route.swift"; sourceTree = "<group>"; };
 		C49CDC9E2F15525F0010FDE4 /* RouteFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteFeature.swift; sourceTree = "<group>"; };
 		C49CDC9F2F15525F0010FDE4 /* RouteMapData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteMapData.swift; sourceTree = "<group>"; };
-		C49CDCA12F15525F0010FDE4 /* testRoute_2.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = testRoute_2.json; sourceTree = "<group>"; };
 		C49CDCA32F15525F0010FDE4 /* HapticService+Route.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HapticService+Route.swift"; sourceTree = "<group>"; };
 		C49CDCA52F15525F0010FDE4 /* RouteContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteContentView.swift; sourceTree = "<group>"; };
 		C49CDCA62F15525F0010FDE4 /* RouteMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteMapView.swift; sourceTree = "<group>"; };
@@ -171,6 +173,8 @@
 				C49CDC902F15525F0010FDE4 /* LandmarkFeature.swift */,
 				C49CDC912F15525F0010FDE4 /* MapFeature.swift */,
 				C49CDC932F15525F0010FDE4 /* testMap_Condition1.json */,
+				C4A2DE520000000000000010 /* route_marriott_to_jwmarriott.json */,
+				C4A2DE520000000000000020 /* route_jwmarriott_to_marriott.json */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -188,7 +192,6 @@
 			children = (
 				C49CDC9E2F15525F0010FDE4 /* RouteFeature.swift */,
 				C49CDC9F2F15525F0010FDE4 /* RouteMapData.swift */,
-				C49CDCA12F15525F0010FDE4 /* testRoute_2.json */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -382,7 +385,8 @@
 			files = (
 				C49CDCBD2F15525F0010FDE4 /* Assets.xcassets in Resources */,
 				C49CDCC52F15525F0010FDE4 /* testMap_Condition1.json in Resources */,
-				C49CDCC72F15525F0010FDE4 /* testRoute_2.json in Resources */,
+				C4A2DE520000000000000011 /* route_marriott_to_jwmarriott.json in Resources */,
+				C4A2DE520000000000000021 /* route_jwmarriott_to_marriott.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

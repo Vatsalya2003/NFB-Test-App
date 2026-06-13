@@ -1,3 +1,7 @@
+// CorridorFeature.swift
+// One road segment — drawn as a blue MapKit polyline.
+// JSON coordinates get Y-flipped here so y=0 in JSON is top of screen.
+
 import MapKit
 import SenseKit
 

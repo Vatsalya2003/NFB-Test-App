@@ -1,3 +1,7 @@
+// MapFeature.swift
+// Protocol that every map element follows (roads, intersections, landmarks, routes).
+// Each type knows how to draw itself on the map and what haptic/speech to play.
+
 import MapKit
 import AVFoundation 
 

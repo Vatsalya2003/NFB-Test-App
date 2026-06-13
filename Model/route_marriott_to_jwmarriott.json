@@ -1,0 +1,30 @@
+{
+  "name": "Route Map - Marriott to JW Marriott",
+  "description": "Austin downtown grid — route along East 2nd St, across Brazos, down East 1st St",
+  "routes": [
+    {
+      "id": "route_marriott_to_jw",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [650, 455],
+          [650, 500],
+          [300, 500],
+          [300, 640]
+        ]
+      },
+      "properties": {
+        "name": "Marriott to JW Marriott",
+        "departure": "Austin Marriott Downtown",
+        "destination": "JW Marriott Austin",
+        "distance": 0,
+        "waypoints": ["i_4", "i_1", "i_2"],
+        "instructions": [
+          {"at": "i_4", "action": "Start on East 2nd Street at Brazos Street"},
+          {"at": "i_1", "action": "Turn left onto Brazos Street heading west"},
+          {"at": "i_2", "action": "Arrive at East 1st Street and San Jacinto Boulevard"}
+        ]
+      }
+    }
+  ]
+}

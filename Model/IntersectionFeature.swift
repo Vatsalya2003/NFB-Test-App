@@ -1,3 +1,6 @@
+// IntersectionFeature.swift
+// Red square where two roads meet. Uses IntersectionAnnotationView to draw on map.
+
 import MapKit
 import SenseKit
 
@@ -17,24 +20,18 @@ class IntersectionFeature: NSObject, MapFeature, MKAnnotation {
         self.id = id
         self.properties = properties
         
-        // Coordinates are already stretched by MapDataLoader
+        // Coordinates are already stretched by MapDataLoader.
+        // Flip Y to match CorridorFeature so intersections land on the roads.
         let x = coordinates[0]
         let y = coordinates[1]
         
         self.coordinate = CLLocationCoordinate2D(
-            latitude: y / 100000.0,
+            latitude: (MapFixedViewport.verticalFlipSum - y) / 100000.0,
             longitude: x / 100000.0
         )
         super.init()
     }
-        
-//        self.coordinate = CLLocationCoordinate2D(
-//            latitude: coordinates[1] / 100000.0,
-//            longitude: coordinates[0] / 100000.0
-//        )
-//        super.init()
-    
-    
+
     @MainActor
     func startHapticFeedback() {
         // Simplified - just call FeedbackManager
@@ -74,12 +71,11 @@ class IntersectionAnnotationView: MKAnnotationView {
     }
     
     private func setupView() {
-        let sideMM: CGFloat = 8.0
-        let sideInPoints = PhysicalDimensions.mmToPoints(sideMM)
+        let sideInPoints = PhysicalDimensions.mmToPoints(MapIntersectionStyle.sideMM)
         
         self.frame = CGRect(x: 0, y: 0, width: sideInPoints, height: sideInPoints)
         self.layer.cornerRadius = 0
-        self.backgroundColor = .systemRed
+        self.backgroundColor = MapIntersectionStyle.red
         
         self.layer.borderWidth = PhysicalDimensions.mmToPoints(0.5)
         self.layer.borderColor = UIColor.white.cgColor
