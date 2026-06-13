@@ -654,7 +654,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.vatsalya.NFB-Test";
+				PRODUCT_BUNDLE_IDENTIFIER = edu.northeastern.unarlabs.NFBTactile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -684,7 +684,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.vatsalya.NFB-Test";
+				PRODUCT_BUNDLE_IDENTIFIER = edu.northeastern.unarlabs.NFBTactile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -702,7 +702,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.vatsalya.NFB-TestTests";
+				PRODUCT_BUNDLE_IDENTIFIER = edu.northeastern.unarlabs.NFBTactile.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -721,7 +721,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.vatsalya.NFB-TestTests";
+				PRODUCT_BUNDLE_IDENTIFIER = edu.northeastern.unarlabs.NFBTactile.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -738,7 +738,7 @@
 				DEVELOPMENT_TEAM = XJ5MZJRQ8C;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.vatsalya.NFB-TestUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = edu.northeastern.unarlabs.NFBTactile.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -755,7 +755,7 @@
 				DEVELOPMENT_TEAM = XJ5MZJRQ8C;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.vatsalya.NFB-TestUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = edu.northeastern.unarlabs.NFBTactile.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
