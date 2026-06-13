@@ -52,12 +52,25 @@ class MapDataLoader {
                 
             case "intersection":
                 if let coords = coordinates as? [Double] {
-                    // Stretch intersection coordinates vertically
                     let stretchedCoords = stretchCoordinate(coords, stretchFactor: stretchFactor)
                     let intersection = IntersectionFeature(id: id, coordinates: stretchedCoords, properties: properties)
                     mapFeatures.append(intersection)
                 }
-                
+
+            case "sidewalk":
+                if let coords = coordinates as? [[Double]] {
+                    let stretchedCoords = stretchCoordinates(coords, stretchFactor: stretchFactor)
+                    let sidewalk = SidewalkFeature(id: id, coordinates: stretchedCoords, properties: properties)
+                    mapFeatures.append(sidewalk)
+                }
+
+            case "crosswalk":
+                if let coords = coordinates as? [[Double]] {
+                    let stretchedCoords = stretchCoordinates(coords, stretchFactor: stretchFactor)
+                    let crosswalk = CrosswalkFeature(id: id, coordinates: stretchedCoords, properties: properties)
+                    mapFeatures.append(crosswalk)
+                }
+
             default:
                 break
             }
