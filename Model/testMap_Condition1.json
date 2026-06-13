@@ -1,0 +1,119 @@
+{
+  "type": "FeatureCollection",
+  "bounds": {
+    "width": 1000,
+    "height": 1000
+  },
+  "features": [
+    {
+      "id": "c_1",
+      "type": "corridor",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            300,
+            400
+          ],
+          [
+            300,
+            750
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Road 1",
+        "level": 1,
+        "accessible": true
+      }
+    },
+    {
+      "id": "c_2",
+      "type": "corridor",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            700,
+            400
+          ],
+          [
+            700,
+            700
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Road 2",
+        "level": 1,
+        "accessible": true
+      }
+    },
+    {
+      "id": "c_3",
+      "type": "corridor",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            300,
+            700
+          ],
+          [
+            700,
+            700
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Road 3",
+        "level": 1,
+        "accessible": true
+      }
+    },
+    {
+      "id": "c_4",
+      "type": "corridor",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            300,
+            600
+          ],
+          [
+            700,
+            600
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Road 4",
+        "level": 1,
+        "accessible": true
+      }
+    },
+    {
+      "id": "c_5",
+      "type": "corridor",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            300,
+            500
+          ],
+          [
+            700,
+            500
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Road 5",
+        "level": 1,
+        "accessible": true
+      }
+    }
+  ]
+}

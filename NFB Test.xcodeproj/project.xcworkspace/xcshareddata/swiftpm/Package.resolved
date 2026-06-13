@@ -1,0 +1,15 @@
+{
+  "originHash" : "10a059f91e5a90c9bb7b306176562890ddc6a0e798488c3d6456711e9345057e",
+  "pins" : [
+    {
+      "identity" : "sensekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/arnavvaryani/SenseKit.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "15148fb253faddb5e986a503ee55ebb954b65b20"
+      }
+    }
+  ],
+  "version" : 3
+}
