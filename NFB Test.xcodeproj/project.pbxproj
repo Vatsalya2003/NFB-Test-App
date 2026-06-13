@@ -8,14 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		C49820CB2F7EB72F00B1E80F /* FeedbackCustomizationTesterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49820CA2F7EB72F00B1E80F /* FeedbackCustomizationTesterView.swift */; };
-		C4A2DE510000000000000001 /* MapDesignerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A2DE510000000000000002 /* MapDesignerView.swift */; };
 		C49820CD2F7EB74500B1E80F /* HapticFeedbackSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49820CC2F7EB74500B1E80F /* HapticFeedbackSelection.swift */; };
 		C49CDCBD2F15525F0010FDE4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C49CDC892F15525F0010FDE4 /* Assets.xcassets */; };
 		C49CDCC52F15525F0010FDE4 /* testMap_Condition1.json in Resources */ = {isa = PBXBuildFile; fileRef = C49CDC932F15525F0010FDE4 /* testMap_Condition1.json */; };
-		C4A2DE520000000000000011 /* route_marriott_to_jwmarriott.json in Resources */ = {isa = PBXBuildFile; fileRef = C4A2DE520000000000000010 /* route_marriott_to_jwmarriott.json */; };
-		C4A2DE520000000000000021 /* route_jwmarriott_to_marriott.json in Resources */ = {isa = PBXBuildFile; fileRef = C4A2DE520000000000000020 /* route_jwmarriott_to_marriott.json */; };
 		C49CDCC92F15525F0010FDE4 /* SpeechSynthesizerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49CDCB12F15525F0010FDE4 /* SpeechSynthesizerManager.swift */; };
-		C4A200012F4000010010FDE4 /* MapUIKitHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A200022F4000010010FDE4 /* MapUIKitHelpers.swift */; };
 		C49CDCCB2F15525F0010FDE4 /* CorridorFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49CDC8D2F15525F0010FDE4 /* CorridorFeature.swift */; };
 		C49CDCCD2F15525F0010FDE4 /* RouteMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49CDCA62F15525F0010FDE4 /* RouteMapView.swift */; };
 		C49CDCCF2F15525F0010FDE4 /* IntersectionFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49CDC8F2F15525F0010FDE4 /* IntersectionFeature.swift */; };
@@ -35,6 +31,21 @@
 		C49CDCE52F15525F0010FDE4 /* RouteMapData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49CDC9F2F15525F0010FDE4 /* RouteMapData.swift */; };
 		C49CDCE82F1552CF0010FDE4 /* SenseKit in Frameworks */ = {isa = PBXBuildFile; productRef = C49CDCE72F1552CF0010FDE4 /* SenseKit */; };
 		C49CDCEB2F1554090010FDE4 /* NFB_TestApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49CDCE92F1554090010FDE4 /* NFB_TestApp.swift */; };
+		C4A200012F4000010010FDE4 /* MapUIKitHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A200022F4000010010FDE4 /* MapUIKitHelpers.swift */; };
+		C4A2DE510000000000000001 /* MapDesignerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A2DE510000000000000002 /* MapDesignerView.swift */; };
+		C4A2DE520000000000000011 /* route_marriott_to_jwmarriott.json in Resources */ = {isa = PBXBuildFile; fileRef = C4A2DE520000000000000010 /* route_marriott_to_jwmarriott.json */; };
+		C4A2DE520000000000000021 /* route_jwmarriott_to_marriott.json in Resources */ = {isa = PBXBuildFile; fileRef = C4A2DE520000000000000020 /* route_jwmarriott_to_marriott.json */; };
+		C4L2000100000000000000A1 /* AccessibleMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4L2000100000000000000A0 /* AccessibleMapView.swift */; };
+		C4L2000100000000000000B1 /* IntersectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4L2000100000000000000B0 /* IntersectionDetailView.swift */; };
+		C4L2000100000000000000C1 /* IntersectionDetailMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4L2000100000000000000C0 /* IntersectionDetailMapView.swift */; };
+		C4L2000100000000000000D1 /* SidewalkFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4L2000100000000000000D0 /* SidewalkFeature.swift */; };
+		C4L2000100000000000000E1 /* CrosswalkFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4L2000100000000000000E0 /* CrosswalkFeature.swift */; };
+		C4L20001000000000000F011 /* intersection_i_1_detail.json in Resources */ = {isa = PBXBuildFile; fileRef = C4L20001000000000000F010 /* intersection_i_1_detail.json */; };
+		C4L20001000000000000F021 /* intersection_i_2_detail.json in Resources */ = {isa = PBXBuildFile; fileRef = C4L20001000000000000F020 /* intersection_i_2_detail.json */; };
+		C4L20001000000000000F031 /* intersection_i_3_detail.json in Resources */ = {isa = PBXBuildFile; fileRef = C4L20001000000000000F030 /* intersection_i_3_detail.json */; };
+		C4L20001000000000000F041 /* intersection_i_4_detail.json in Resources */ = {isa = PBXBuildFile; fileRef = C4L20001000000000000F040 /* intersection_i_4_detail.json */; };
+		C4L20001000000000000F051 /* intersection_i_5_detail.json in Resources */ = {isa = PBXBuildFile; fileRef = C4L20001000000000000F050 /* intersection_i_5_detail.json */; };
+		C4L20001000000000000F061 /* intersection_i_6_detail.json in Resources */ = {isa = PBXBuildFile; fileRef = C4L20001000000000000F060 /* intersection_i_6_detail.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,7 +67,6 @@
 
 /* Begin PBXFileReference section */
 		C49820CA2F7EB72F00B1E80F /* FeedbackCustomizationTesterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackCustomizationTesterView.swift; sourceTree = "<group>"; };
-		C4A2DE510000000000000002 /* MapDesignerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapDesignerView.swift; sourceTree = "<group>"; };
 		C49820CC2F7EB74500B1E80F /* HapticFeedbackSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticFeedbackSelection.swift; sourceTree = "<group>"; };
 		C49CDBE52EEEF33E0010FDE4 /* NFB Test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NFB Test.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C49CDBF22EEEF33F0010FDE4 /* NFB TestTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "NFB TestTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -68,8 +78,6 @@
 		C49CDC902F15525F0010FDE4 /* LandmarkFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkFeature.swift; sourceTree = "<group>"; };
 		C49CDC912F15525F0010FDE4 /* MapFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapFeature.swift; sourceTree = "<group>"; };
 		C49CDC932F15525F0010FDE4 /* testMap_Condition1.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = testMap_Condition1.json; sourceTree = "<group>"; };
-		C4A2DE520000000000000010 /* route_marriott_to_jwmarriott.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = route_marriott_to_jwmarriott.json; sourceTree = "<group>"; };
-		C4A2DE520000000000000020 /* route_jwmarriott_to_marriott.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = route_jwmarriott_to_marriott.json; sourceTree = "<group>"; };
 		C49CDC9B2F15525F0010FDE4 /* PhysicalDimensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicalDimensions.swift; sourceTree = "<group>"; };
 		C49CDC9C2F15525F0010FDE4 /* FeedbackManager+Route.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedbackManager+Route.swift"; sourceTree = "<group>"; };
 		C49CDC9E2F15525F0010FDE4 /* RouteFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteFeature.swift; sourceTree = "<group>"; };
@@ -82,10 +90,24 @@
 		C49CDCAE2F15525F0010FDE4 /* HapticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticService.swift; sourceTree = "<group>"; };
 		C49CDCAF2F15525F0010FDE4 /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
 		C49CDCB12F15525F0010FDE4 /* SpeechSynthesizerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechSynthesizerManager.swift; sourceTree = "<group>"; };
-		C4A200022F4000010010FDE4 /* MapUIKitHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapUIKitHelpers.swift; sourceTree = "<group>"; };
 		C49CDCBB2F15525F0010FDE4 /* MapDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapDataLoader.swift; sourceTree = "<group>"; };
 		C49CDCE92F1554090010FDE4 /* NFB_TestApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFB_TestApp.swift; sourceTree = "<group>"; };
+		C4A200022F4000010010FDE4 /* MapUIKitHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapUIKitHelpers.swift; sourceTree = "<group>"; };
+		C4A2DE510000000000000002 /* MapDesignerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapDesignerView.swift; sourceTree = "<group>"; };
+		C4A2DE520000000000000010 /* route_marriott_to_jwmarriott.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = route_marriott_to_jwmarriott.json; sourceTree = "<group>"; };
+		C4A2DE520000000000000020 /* route_jwmarriott_to_marriott.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = route_jwmarriott_to_marriott.json; sourceTree = "<group>"; };
 		C4NFB0002FDB7000001453CD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C4L2000100000000000000A0 /* AccessibleMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibleMapView.swift; sourceTree = "<group>"; };
+		C4L2000100000000000000B0 /* IntersectionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntersectionDetailView.swift; sourceTree = "<group>"; };
+		C4L2000100000000000000C0 /* IntersectionDetailMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntersectionDetailMapView.swift; sourceTree = "<group>"; };
+		C4L2000100000000000000D0 /* SidewalkFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidewalkFeature.swift; sourceTree = "<group>"; };
+		C4L2000100000000000000E0 /* CrosswalkFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrosswalkFeature.swift; sourceTree = "<group>"; };
+		C4L20001000000000000F010 /* intersection_i_1_detail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intersection_i_1_detail.json; sourceTree = "<group>"; };
+		C4L20001000000000000F020 /* intersection_i_2_detail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intersection_i_2_detail.json; sourceTree = "<group>"; };
+		C4L20001000000000000F030 /* intersection_i_3_detail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intersection_i_3_detail.json; sourceTree = "<group>"; };
+		C4L20001000000000000F040 /* intersection_i_4_detail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intersection_i_4_detail.json; sourceTree = "<group>"; };
+		C4L20001000000000000F050 /* intersection_i_5_detail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intersection_i_5_detail.json; sourceTree = "<group>"; };
+		C4L20001000000000000F060 /* intersection_i_6_detail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intersection_i_6_detail.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -172,9 +194,17 @@
 				C49CDC8F2F15525F0010FDE4 /* IntersectionFeature.swift */,
 				C49CDC902F15525F0010FDE4 /* LandmarkFeature.swift */,
 				C49CDC912F15525F0010FDE4 /* MapFeature.swift */,
+				C4L2000100000000000000D0 /* SidewalkFeature.swift */,
+				C4L2000100000000000000E0 /* CrosswalkFeature.swift */,
 				C49CDC932F15525F0010FDE4 /* testMap_Condition1.json */,
 				C4A2DE520000000000000010 /* route_marriott_to_jwmarriott.json */,
 				C4A2DE520000000000000020 /* route_jwmarriott_to_marriott.json */,
+				C4L20001000000000000F010 /* intersection_i_1_detail.json */,
+				C4L20001000000000000F020 /* intersection_i_2_detail.json */,
+				C4L20001000000000000F030 /* intersection_i_3_detail.json */,
+				C4L20001000000000000F040 /* intersection_i_4_detail.json */,
+				C4L20001000000000000F050 /* intersection_i_5_detail.json */,
+				C4L20001000000000000F060 /* intersection_i_6_detail.json */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -238,7 +268,10 @@
 		C49CDCBA2F15525F0010FDE4 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				C4L2000100000000000000A0 /* AccessibleMapView.swift */,
 				C49820CA2F7EB72F00B1E80F /* FeedbackCustomizationTesterView.swift */,
+				C4L2000100000000000000B0 /* IntersectionDetailView.swift */,
+				C4L2000100000000000000C0 /* IntersectionDetailMapView.swift */,
 				C4A200022F4000010010FDE4 /* MapUIKitHelpers.swift */,
 				C4A2DE510000000000000002 /* MapDesignerView.swift */,
 			);
@@ -387,6 +420,12 @@
 				C49CDCC52F15525F0010FDE4 /* testMap_Condition1.json in Resources */,
 				C4A2DE520000000000000011 /* route_marriott_to_jwmarriott.json in Resources */,
 				C4A2DE520000000000000021 /* route_jwmarriott_to_marriott.json in Resources */,
+				C4L20001000000000000F011 /* intersection_i_1_detail.json in Resources */,
+				C4L20001000000000000F021 /* intersection_i_2_detail.json in Resources */,
+				C4L20001000000000000F031 /* intersection_i_3_detail.json in Resources */,
+				C4L20001000000000000F041 /* intersection_i_4_detail.json in Resources */,
+				C4L20001000000000000F051 /* intersection_i_5_detail.json in Resources */,
+				C4L20001000000000000F061 /* intersection_i_6_detail.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -434,6 +473,11 @@
 				C49CDCE42F15525F0010FDE4 /* SpeechService.swift in Sources */,
 				C49CDCEB2F1554090010FDE4 /* NFB_TestApp.swift in Sources */,
 				C49CDCE52F15525F0010FDE4 /* RouteMapData.swift in Sources */,
+				C4L2000100000000000000A1 /* AccessibleMapView.swift in Sources */,
+				C4L2000100000000000000B1 /* IntersectionDetailView.swift in Sources */,
+				C4L2000100000000000000C1 /* IntersectionDetailMapView.swift in Sources */,
+				C4L2000100000000000000D1 /* SidewalkFeature.swift in Sources */,
+				C4L2000100000000000000E1 /* CrosswalkFeature.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -595,7 +639,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 9WP58NUV7H;
+				DEVELOPMENT_TEAM = XJ5MZJRQ8C;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "NFB Test/Info.plist";
@@ -625,7 +669,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 9WP58NUV7H;
+				DEVELOPMENT_TEAM = XJ5MZJRQ8C;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "NFB Test/Info.plist";

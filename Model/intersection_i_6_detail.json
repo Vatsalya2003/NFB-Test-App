@@ -1,0 +1,162 @@
+{
+  "type": "FeatureCollection",
+  "intersectionId": "i_6",
+  "description": "East 2nd Street and Trinity Street — plus-shaped 4-way, no route",
+  "orientation": "north-up",
+  "bounds": { "width": 1000, "height": 1000 },
+  "features": [
+    {
+      "id": "l2_road_trinity_south",
+      "type": "corridor",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[500, 500], [500, 900]]
+      },
+      "properties": { "name": "Trinity Street", "level": 2 }
+    },
+    {
+      "id": "l2_road_trinity_north",
+      "type": "corridor",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[500, 100], [500, 500]]
+      },
+      "properties": { "name": "Trinity Street", "level": 2 }
+    },
+    {
+      "id": "l2_road_e2nd_west",
+      "type": "corridor",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[100, 500], [500, 500]]
+      },
+      "properties": { "name": "East 2nd Street", "level": 2 }
+    },
+    {
+      "id": "l2_road_e2nd_east",
+      "type": "corridor",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[500, 500], [900, 500]]
+      },
+      "properties": { "name": "East 2nd Street", "level": 2 }
+    },
+    {
+      "id": "l2_sw_trinity_west_south",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[440, 560], [440, 900]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_sw_trinity_east_south",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[560, 560], [560, 900]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_sw_trinity_west_north",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[440, 100], [440, 440]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_sw_trinity_east_north",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[560, 100], [560, 440]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_sw_e2nd_north_west",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[100, 440], [440, 440]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_sw_e2nd_south_west",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[100, 560], [440, 560]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_sw_e2nd_north_east",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[560, 440], [900, 440]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_sw_e2nd_south_east",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[560, 560], [900, 560]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_cw_north",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[440, 440], [560, 440]]
+      },
+      "properties": { "name": "Crosswalk north", "level": 2 }
+    },
+    {
+      "id": "l2_cw_south",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[440, 560], [560, 560]]
+      },
+      "properties": { "name": "Crosswalk south", "level": 2 }
+    },
+    {
+      "id": "l2_cw_west",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[440, 440], [440, 560]]
+      },
+      "properties": { "name": "Crosswalk west", "level": 2 }
+    },
+    {
+      "id": "l2_cw_east",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[560, 440], [560, 560]]
+      },
+      "properties": { "name": "Crosswalk east", "level": 2 }
+    },
+    {
+      "id": "l2_intersection_center",
+      "type": "intersection",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [500, 500]
+      },
+      "properties": { "name": "East 2nd Street and Trinity Street", "level": 2 }
+    }
+  ]
+}

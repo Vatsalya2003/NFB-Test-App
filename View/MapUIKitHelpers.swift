@@ -50,6 +50,19 @@ enum MapLandmarkStyle {
     }
 }
 
+enum MapSidewalkStyle {
+    /// Sidewalk gray (#9e9e9e).
+    static let color = UIColor(red: 0x9e / 255.0, green: 0x9e / 255.0, blue: 0x9e / 255.0, alpha: 1.0)
+    static let lineWidthMM: CGFloat = 4.0
+}
+
+enum MapCrosswalkStyle {
+    /// Crosswalk white with dashes.
+    static let color = UIColor.white
+    static let lineWidthMM: CGFloat = 2.0
+    static let dashPattern: [NSNumber] = [6, 4]
+}
+
 enum MapDestinationStyle {
     /// Yellow dot marking the route end / point of interest.
     static let color = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0)
@@ -71,6 +84,26 @@ enum MapFixedViewport {
     static func apply(to mapView: MKMapView, edgePadding: UIEdgeInsets? = nil) {
         let southwest = MKMapPoint(CLLocationCoordinate2D(latitude: 0.0016, longitude: 0.0027))
         let northeast = MKMapPoint(CLLocationCoordinate2D(latitude: 0.0116, longitude: 0.0073))
+        let mapRect = MKMapRect(
+            x: southwest.x,
+            y: northeast.y,
+            width: northeast.x - southwest.x,
+            height: southwest.y - northeast.y
+        )
+        mapView.setVisibleMapRect(
+            mapRect,
+            edgePadding: edgePadding ?? Self.edgePadding,
+            animated: false
+        )
+    }
+}
+
+enum MapIntersectionViewport {
+    static let edgePadding = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+
+    static func apply(to mapView: MKMapView, edgePadding: UIEdgeInsets? = nil) {
+        let southwest = MKMapPoint(CLLocationCoordinate2D(latitude: -0.003, longitude: 0.0005))
+        let northeast = MKMapPoint(CLLocationCoordinate2D(latitude: 0.019, longitude: 0.0095))
         let mapRect = MKMapRect(
             x: southwest.x,
             y: northeast.y,

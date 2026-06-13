@@ -46,7 +46,8 @@ open "NFB Test.xcodeproj"
 | Screen | Purpose |
 |--------|---------|
 | **Route Overlay Study** (home) | Choose Marriott → JW or reverse route |
-| **Route Study View** | Full-screen tactile map with route overlay |
+| **Route Study View** | Full-screen tactile map with route overlay (Level 1) |
+| **Intersection Detail** | Zoomed-in intersection view with wider roads, sidewalks, crosswalks (Level 2) |
 | **Map Designer** | Draw corridors, export `testMap_Condition1.json` |
 | **Feedback Tester** | Try haptic patterns on map elements |
 
@@ -78,6 +79,7 @@ See **[docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md)** for detailed document
 | `Model/testMap_Condition1.json` | Base map: E 1st/E 2nd St grid, Brazos, San Jacinto, Trinity, landmarks |
 | `Model/route_marriott_to_jwmarriott.json` | Marriott → JW Marriott route |
 | `Model/route_jwmarriott_to_marriott.json` | JW Marriott → Marriott route |
+| `Model/intersection_i_*_detail.json` | Level 2 intersection detail data (6 files, one per intersection) |
 
 ---
 
@@ -90,6 +92,9 @@ See **[docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md)** for detailed document
 | Route | Cyan `#48cae4` | 3.5 mm |
 | Landmarks | Purple `#7b2cbf` box + tag | 9×6 mm, 2 mm from road |
 | Start / end | Yellow dot | 4 mm |
+| Sidewalks (Level 2) | Gray `#9e9e9e` | 4 mm |
+| Crosswalks (Level 2) | White dashed | 2 mm |
+| Roads (Level 2) | Blue `#023e8a` | 8 mm |
 
 ---
 
@@ -97,7 +102,7 @@ See **[docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md)** for detailed document
 
 - **Tap** — haptic + speak feature name
 - **Long press / drag** — continuous feedback while exploring
-- **Double tap** — haptic pulse (intersection zoom planned)
+- **Double tap on intersection** — zoom into Level 2 intersection detail view
 - **3-finger swipe right** — go back
 
 ---

@@ -1,0 +1,144 @@
+{
+  "type": "FeatureCollection",
+  "intersectionId": "i_1",
+  "description": "East 1st Street and Brazos Street — T-shaped intersection, route goes straight through",
+  "orientation": "track-up",
+  "bounds": { "width": 1000, "height": 1000 },
+  "features": [
+    {
+      "id": "l2_road_brazos_south",
+      "type": "corridor",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[500, 500], [500, 900]]
+      },
+      "properties": { "name": "Brazos Street", "level": 2 }
+    },
+    {
+      "id": "l2_road_brazos_north",
+      "type": "corridor",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[500, 100], [500, 500]]
+      },
+      "properties": { "name": "Brazos Street", "level": 2 }
+    },
+    {
+      "id": "l2_road_e1st_east",
+      "type": "corridor",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[500, 500], [900, 500]]
+      },
+      "properties": { "name": "East 1st Street", "level": 2 }
+    },
+    {
+      "id": "l2_sw_brazos_west_south",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[440, 500], [440, 900]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_sw_brazos_east_south",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[560, 560], [560, 900]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_sw_brazos_west_north",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[440, 100], [440, 500]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_sw_brazos_east_north",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[560, 100], [560, 440]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_sw_e1st_north",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[560, 440], [900, 440]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_sw_e1st_south",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[560, 560], [900, 560]]
+      },
+      "properties": { "name": "Sidewalk", "level": 2 }
+    },
+    {
+      "id": "l2_cw_brazos_north",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[440, 440], [560, 440]]
+      },
+      "properties": { "name": "Crosswalk on Brazos Street", "level": 2 }
+    },
+    {
+      "id": "l2_cw_e1st",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[560, 440], [560, 560]]
+      },
+      "properties": { "name": "Crosswalk on East 1st Street", "level": 2 }
+    },
+    {
+      "id": "l2_intersection_center",
+      "type": "intersection",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [500, 500]
+      },
+      "properties": { "name": "East 1st Street and Brazos Street", "level": 2 }
+    },
+    {
+      "id": "l2_poi_loaf",
+      "type": "landmark",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [600, 560]
+      },
+      "properties": {
+        "name": "Loaf and Vine",
+        "tag": "LV",
+        "side": "right",
+        "category": "coffee",
+        "announcement": "Loaf and Vine coffee shop on your right"
+      }
+    }
+  ],
+  "route": {
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [[500, 900], [500, 100]]
+    },
+    "properties": {
+      "name": "Route through intersection",
+      "action": "Continue straight on Brazos Street",
+      "departure": "Route",
+      "destination": "Route"
+    }
+  }
+}

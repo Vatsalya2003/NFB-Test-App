@@ -1,35 +1,18 @@
-// RouteMapView.swift
-// The main tactile map — MapKit + touch gestures + hit testing.
-// Renders roads, intersections, landmarks, route line, and yellow start/end dots.
+// IntersectionDetailMapView.swift
+// Level 2 zoomed intersection view — wider roads (8mm), sidewalks, crosswalks, route on top.
+// Based on RouteMapView but with intersection-specific viewport and rendering.
 
 import SwiftUI
 import MapKit
 
-/// Tactile map view — renders corridor roads and handles touch/haptic feedback.
-struct RouteMapView: UIViewRepresentable {
+struct IntersectionDetailMapView: UIViewRepresentable {
     let features: [MapFeature]
     let routes: [RouteFeature]
-    var isInteractionEnabled: Bool
-    var onThreeFingerSwipe: (() -> Void)?
-    var onIntersectionDoubleTap: ((IntersectionFeature) -> Void)?
-
-    init(
-        features: [MapFeature],
-        routes: [RouteFeature] = [],
-        isInteractionEnabled: Bool = true,
-        onThreeFingerSwipe: (() -> Void)? = nil,
-        onIntersectionDoubleTap: ((IntersectionFeature) -> Void)? = nil
-    ) {
-        self.features = features
-        self.routes = routes
-        self.isInteractionEnabled = isInteractionEnabled
-        self.onThreeFingerSwipe = onThreeFingerSwipe
-        self.onIntersectionDoubleTap = onIntersectionDoubleTap
-    }
+    var onBackGesture: (() -> Void)?
 
     func makeUIView(context: Context) -> MKMapView {
         let mapView = AccessibleMapView()
-        mapView.onBackGesture = onThreeFingerSwipe
+        mapView.onBackGesture = onBackGesture
         mapView.layoutMargins = .zero
 
         mapView.mapType = .mutedStandard
@@ -43,22 +26,22 @@ struct RouteMapView: UIViewRepresentable {
         mapView.isScrollEnabled = false
         mapView.isRotateEnabled = false
         mapView.isPitchEnabled = false
-        mapView.isUserInteractionEnabled = isInteractionEnabled
+        mapView.isUserInteractionEnabled = true
         mapView.pointOfInterestFilter = .excludingAll
 
         if UIAccessibility.isVoiceOverRunning {
             mapView.isAccessibilityElement = true
             mapView.accessibilityTraits = [.allowsDirectInteraction]
-            mapView.accessibilityLabel = "Tactile navigation map"
-            mapView.accessibilityHint = "Touch roads for vibration and street names."
+            mapView.accessibilityLabel = "Intersection detail map"
+            mapView.accessibilityHint = "Touch roads for vibration. Double tap to go back."
         }
 
         mapView.delegate = context.coordinator
 
-        if onThreeFingerSwipe != nil {
+        if onBackGesture != nil {
             let swipe = UISwipeGestureRecognizer(
                 target: context.coordinator,
-                action: #selector(RouteCoordinator.handleThreeFingerSwipe)
+                action: #selector(IntersectionDetailCoordinator.handleThreeFingerSwipe)
             )
             swipe.direction = .right
             swipe.numberOfTouchesRequired = 3
@@ -68,73 +51,69 @@ struct RouteMapView: UIViewRepresentable {
         mapView.addOverlay(BlankTileOverlay(), level: .aboveLabels)
         addGestures(to: mapView, coordinator: context.coordinator)
 
-        // Fixed viewport (same as Indoor_Route) — consistent zoom, small background grid
-        MapFixedViewport.apply(to: mapView)
+        MapIntersectionViewport.apply(to: mapView)
         DispatchQueue.main.async {
-            MapFixedViewport.apply(to: mapView)
+            MapIntersectionViewport.apply(to: mapView)
         }
 
         return mapView
     }
 
     func updateUIView(_ mapView: MKMapView, context: Context) {
-        mapView.isUserInteractionEnabled = isInteractionEnabled
-
         if let accessibleMap = mapView as? AccessibleMapView {
-            accessibleMap.onBackGesture = onThreeFingerSwipe
+            accessibleMap.onBackGesture = onBackGesture
         }
 
         let featureOverlays = mapView.overlays.filter { !($0 is BlankTileOverlay) }
         mapView.removeOverlays(featureOverlays)
         mapView.removeAnnotations(mapView.annotations)
 
-        let corridorFeatures = MapVisibleRectHelper.corridorFeatures(from: features)
-        context.coordinator.currentFeatures = corridorFeatures
+        let corridors = features.filter { $0.featureType == "corridor" }
+        let sidewalks = features.filter { $0.featureType == "sidewalk" }
+        let crosswalks = features.filter { $0.featureType == "crosswalk" }
+        let intersections = features.compactMap { $0 as? IntersectionFeature }
+        let landmarks = features.compactMap { $0 as? LandmarkFeature }
+
+        context.coordinator.currentFeatures = features
+        context.coordinator.currentIntersections = intersections
+        context.coordinator.currentLandmarks = landmarks
         context.coordinator.currentRoutes = routes
 
-        corridorFeatures.forEach { $0.addToMap(mapView) }
-
-        // Intersections render as red squares on top of the corridors.
-        let intersectionFeatures = features.compactMap { $0 as? IntersectionFeature }
-        context.coordinator.currentIntersections = intersectionFeatures
-        intersectionFeatures.forEach { $0.addToMap(mapView) }
-
-        // Landmarks render as circles (building markers).
-        let landmarkFeatures = features.compactMap { $0 as? LandmarkFeature }
-        context.coordinator.currentLandmarks = landmarkFeatures
-        landmarkFeatures.forEach { $0.addToMap(mapView) }
-
-        // Route line (#48cae4) drawn above the corridors.
+        // Draw order: sidewalks first, then roads, then crosswalks, then route on top
+        sidewalks.forEach { $0.addToMap(mapView) }
+        corridors.forEach { $0.addToMap(mapView) }
+        crosswalks.forEach { $0.addToMap(mapView) }
+        intersections.forEach { $0.addToMap(mapView) }
+        landmarks.forEach { $0.addToMap(mapView) }
         routes.forEach { $0.addToMap(mapView) }
 
-        // Yellow dots at route start (your location) and end (destination).
         let routeEndpoints = routes.flatMap { RouteEndpointFeature.endpoints(for: $0) }
         context.coordinator.currentRouteEndpoints = routeEndpoints
         routeEndpoints.forEach { $0.addToMap(mapView) }
 
-        MapFixedViewport.apply(to: mapView)
+        MapIntersectionViewport.apply(to: mapView)
     }
 
-    func makeCoordinator() -> RouteCoordinator {
-        RouteCoordinator(self)
+    func makeCoordinator() -> IntersectionDetailCoordinator {
+        IntersectionDetailCoordinator(self)
     }
 
-    private func addGestures(to mapView: MKMapView, coordinator: RouteCoordinator) {
+    private func addGestures(to mapView: MKMapView, coordinator: IntersectionDetailCoordinator) {
         let doubleTap = UITapGestureRecognizer(
             target: coordinator,
-            action: #selector(RouteCoordinator.handleDoubleTap(_:))
+            action: #selector(IntersectionDetailCoordinator.handleDoubleTap(_:))
         )
         doubleTap.numberOfTapsRequired = 2
 
         let singleTap = UITapGestureRecognizer(
             target: coordinator,
-            action: #selector(RouteCoordinator.handleSingleTap(_:))
+            action: #selector(IntersectionDetailCoordinator.handleSingleTap(_:))
         )
         singleTap.require(toFail: doubleTap)
 
         let longPress = UILongPressGestureRecognizer(
             target: coordinator,
-            action: #selector(RouteCoordinator.handleLongPress(_:))
+            action: #selector(IntersectionDetailCoordinator.handleLongPress(_:))
         )
         longPress.minimumPressDuration = 0.1
         longPress.allowableMovement = 10000
@@ -148,8 +127,8 @@ struct RouteMapView: UIViewRepresentable {
 
 // MARK: - Coordinator
 
-class RouteCoordinator: NSObject, MKMapViewDelegate {
-    var parent: RouteMapView
+class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate {
+    var parent: IntersectionDetailMapView
     var currentFeatures: [MapFeature] = []
     var currentIntersections: [IntersectionFeature] = []
     var currentLandmarks: [LandmarkFeature] = []
@@ -160,7 +139,7 @@ class RouteCoordinator: NSObject, MKMapViewDelegate {
     private var lastUpdateTime: TimeInterval = 0
     private let updateThreshold: TimeInterval = 0.1
 
-    init(_ parent: RouteMapView) {
+    init(_ parent: IntersectionDetailMapView) {
         self.parent = parent
         super.init()
     }
@@ -172,7 +151,6 @@ class RouteCoordinator: NSObject, MKMapViewDelegate {
             return WhiteTileRenderer(overlay: overlay)
         }
 
-        // Route line (checked before the generic corridor polyline since RoutePolyline subclasses MKPolyline).
         if let routeLine = overlay as? RoutePolyline {
             let renderer = MKPolylineRenderer(polyline: routeLine)
             renderer.strokeColor = MapRouteStyle.color
@@ -182,10 +160,29 @@ class RouteCoordinator: NSObject, MKMapViewDelegate {
             return renderer
         }
 
+        if overlay is SidewalkPolyline {
+            let renderer = MKPolylineRenderer(overlay: overlay)
+            renderer.strokeColor = MapSidewalkStyle.color
+            renderer.lineWidth = PhysicalDimensions.mmToPoints(MapSidewalkStyle.lineWidthMM)
+            renderer.lineCap = .round
+            renderer.lineJoin = .round
+            return renderer
+        }
+
+        if overlay is CrosswalkPolyline {
+            let renderer = MKPolylineRenderer(overlay: overlay)
+            renderer.strokeColor = MapCrosswalkStyle.color
+            renderer.lineWidth = PhysicalDimensions.mmToPoints(MapCrosswalkStyle.lineWidthMM)
+            renderer.lineDashPattern = MapCrosswalkStyle.dashPattern
+            renderer.lineCap = .butt
+            return renderer
+        }
+
+        // Corridors — 8mm wide in Level 2
         if let polyline = overlay as? MKPolyline {
             let renderer = MKPolylineRenderer(polyline: polyline)
             renderer.strokeColor = MapRoadStyle.blue
-            renderer.lineWidth = PhysicalDimensions.mmToPoints(MapRoadStyle.lineWidthMM)
+            renderer.lineWidth = PhysicalDimensions.mmToPoints(8.0)
             renderer.lineCap = .round
             renderer.lineJoin = .round
             return renderer
@@ -226,19 +223,13 @@ class RouteCoordinator: NSObject, MKMapViewDelegate {
 
     @objc func handleThreeFingerSwipe(_ gesture: UISwipeGestureRecognizer) {
         guard gesture.state == .recognized else { return }
-        parent.onThreeFingerSwipe?()
+        parent.onBackGesture?()
     }
 
     @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
         guard gesture.state == .recognized else { return }
         FeedbackManager.shared.playPulseHaptic()
-
-        guard let mapView = gesture.view as? MKMapView else { return }
-        let point = gesture.location(in: mapView)
-
-        if let tappedIntersection = intersection(at: point, in: mapView) {
-            parent.onIntersectionDoubleTap?(tappedIntersection)
-        }
+        parent.onBackGesture?()
     }
 
     @objc func handleSingleTap(_ gesture: UITapGestureRecognizer) {
@@ -247,12 +238,8 @@ class RouteCoordinator: NSObject, MKMapViewDelegate {
 
         FeedbackManager.shared.playPulseHaptic()
 
-        if let endpoint = topFeature(at: point, in: mapView) as? RouteEndpointFeature {
-            FeedbackManager.shared.speak(endpoint.announcement)
-        } else if let landmark = topFeature(at: point, in: mapView) as? LandmarkFeature {
-            FeedbackManager.shared.speak(landmark.announcement)
-        } else if let feature = topFeature(at: point, in: mapView),
-                  let name = feature.properties["name"] as? String {
+        if let feature = topFeature(at: point, in: mapView),
+           let name = feature.properties["name"] as? String {
             FeedbackManager.shared.speak(name)
         }
     }
@@ -295,12 +282,14 @@ class RouteCoordinator: NSObject, MKMapViewDelegate {
         beginContinuousFeedback(for: feature)
     }
 
-    /// Route endpoints, then landmarks, then intersections, then corridors.
     private func topFeature(at point: CGPoint, in mapView: MKMapView) -> MapFeature? {
         if let endpoint = routeEndpoint(at: point, in: mapView) { return endpoint }
         if let landmark = landmark(at: point, in: mapView) { return landmark }
         if let intersection = intersection(at: point, in: mapView) { return intersection }
-        return corridor(at: point, in: mapView)
+        if let crosswalk = crosswalk(at: point, in: mapView) { return crosswalk }
+        if let corridor = corridor(at: point, in: mapView) { return corridor }
+        if let sidewalk = sidewalk(at: point, in: mapView) { return sidewalk }
+        return nil
     }
 
     private func beginContinuousFeedback(for feature: MapFeature?) {
@@ -310,7 +299,6 @@ class RouteCoordinator: NSObject, MKMapViewDelegate {
             FeedbackManager.shared.startLandmarkPulsing()
             FeedbackManager.shared.speak(endpoint.announcement)
         case let landmark as LandmarkFeature:
-            // Fast pulse + directional announcement, e.g. "JW Marriott on your right".
             FeedbackManager.shared.startLandmarkPulsing()
             FeedbackManager.shared.speak(landmark.announcement)
         case is IntersectionFeature:
@@ -318,6 +306,12 @@ class RouteCoordinator: NSObject, MKMapViewDelegate {
             if let name = feature.properties["name"] as? String {
                 FeedbackManager.shared.speak(name)
             }
+        case is CrosswalkFeature:
+            FeedbackManager.shared.startContinuousPulsing()
+            FeedbackManager.shared.speak("Crosswalk")
+        case is SidewalkFeature:
+            FeedbackManager.shared.startContinuousSound()
+            FeedbackManager.shared.speak("Sidewalk")
         default:
             FeedbackManager.shared.startContinuousSound()
             if let name = feature.properties["name"] as? String {
@@ -345,8 +339,6 @@ class RouteCoordinator: NSObject, MKMapViewDelegate {
     }
 
     private func landmark(at point: CGPoint, in mapView: MKMapView) -> LandmarkFeature? {
-        // Generous proximity so it fires while a finger traces the route past the building,
-        // and also when tapping the offset box itself.
         let anchorThreshold: CGFloat = 30
         let boxThreshold = max(PhysicalDimensions.mmToPoints(MapLandmarkStyle.boxWidthMM) / 2, 22)
         for feature in currentLandmarks {
@@ -363,7 +355,7 @@ class RouteCoordinator: NSObject, MKMapViewDelegate {
 
     private func intersection(at point: CGPoint, in mapView: MKMapView) -> IntersectionFeature? {
         let half = PhysicalDimensions.mmToPoints(MapIntersectionStyle.sideMM) / 2
-        let threshold = max(half, 22) // ensure an accessible touch target
+        let threshold = max(half, 22)
         for feature in currentIntersections {
             let center = mapView.convert(feature.coordinate, toPointTo: nil)
             if hypot(point.x - center.x, point.y - center.y) <= threshold {
@@ -373,9 +365,23 @@ class RouteCoordinator: NSObject, MKMapViewDelegate {
         return nil
     }
 
-    private func corridor(at point: CGPoint, in mapView: MKMapView) -> CorridorFeature? {
-        let threshold = PhysicalDimensions.mmToPoints(MapRoadStyle.lineWidthMM) / 2
+    private func crosswalk(at point: CGPoint, in mapView: MKMapView) -> CrosswalkFeature? {
+        let threshold = PhysicalDimensions.mmToPoints(MapCrosswalkStyle.lineWidthMM)
+        for feature in currentFeatures where feature.featureType == "crosswalk" {
+            guard let cw = feature as? CrosswalkFeature else { continue }
+            for i in 0..<(cw.coordinates.count - 1) {
+                let start = mapView.convert(cw.coordinates[i], toPointTo: nil)
+                let end = mapView.convert(cw.coordinates[i + 1], toPointTo: nil)
+                if distanceFromPoint(point, toLineFrom: start, to: end) < threshold {
+                    return cw
+                }
+            }
+        }
+        return nil
+    }
 
+    private func corridor(at point: CGPoint, in mapView: MKMapView) -> CorridorFeature? {
+        let threshold = PhysicalDimensions.mmToPoints(8.0) / 2
         for feature in currentFeatures where feature.featureType == "corridor" {
             guard let corridor = feature as? CorridorFeature else { continue }
             for i in 0..<(corridor.coordinates.count - 1) {
@@ -383,6 +389,21 @@ class RouteCoordinator: NSObject, MKMapViewDelegate {
                 let end = mapView.convert(corridor.coordinates[i + 1], toPointTo: nil)
                 if distanceFromPoint(point, toLineFrom: start, to: end) < threshold {
                     return corridor
+                }
+            }
+        }
+        return nil
+    }
+
+    private func sidewalk(at point: CGPoint, in mapView: MKMapView) -> SidewalkFeature? {
+        let threshold = PhysicalDimensions.mmToPoints(MapSidewalkStyle.lineWidthMM) / 2
+        for feature in currentFeatures where feature.featureType == "sidewalk" {
+            guard let sw = feature as? SidewalkFeature else { continue }
+            for i in 0..<(sw.coordinates.count - 1) {
+                let start = mapView.convert(sw.coordinates[i], toPointTo: nil)
+                let end = mapView.convert(sw.coordinates[i + 1], toPointTo: nil)
+                if distanceFromPoint(point, toLineFrom: start, to: end) < threshold {
+                    return sw
                 }
             }
         }
