@@ -6,61 +6,47 @@ extension HapticService {
     
     // MARK: - Route Vibration Pattern
     
-    /// Route vibration: INTENSITY CONTRAST approach
-    /// Route = 100% intensity continuous (strong, assertive)
-    /// Corridor = 50% intensity continuous (softer)
-    /// Users feel a clear "upgrade" when moving from corridor to route
-    /// Same continuous feel, but noticeably STRONGER on route
+    /// Route vibration: rhythmic pulsing (distinct from corridor's steady continuous hum).
+    /// Streets = smooth continuous at 50% intensity; route = assertive 0.2s pulse cycle at 100%.
     func startRouteVibration() {
         guard let engine = hapticEngine else {
             print("No haptic engine for route vibration")
             return
         }
-        
-        // Stop any existing vibrations first
+
         stopContinuousVibration()
         stopPulsingVibration()
         stopRouteVibration()
-        
+
+        let pulseInterval: TimeInterval = 0.2
+        let pulseDuration: TimeInterval = 0.12
+        let routeIntensity: Float = 1.0
+        let routeSharpness: Float = 0.85
+
         do {
-            // Ensure engine is running
             try engine.start()
-            
-            // Route uses FULL INTENSITY (100%) vs corridor's 50%
-            // Higher sharpness (0.8) gives it a more assertive feel
-            let routeIntensity: Float = 1.0    // 100% - double the corridor's 50%
-            let routeSharpness: Float = 0.8    // Higher sharpness than corridor's 0.4
-            let routeDuration: TimeInterval = 100.0  // Long continuous duration
-            
-            let intensity = CHHapticEventParameter(
-                parameterID: .hapticIntensity,
-                value: routeIntensity
-            )
-            
-            let sharpness = CHHapticEventParameter(
-                parameterID: .hapticSharpness,
-                value: routeSharpness
-            )
-            
-            // Create a continuous event - same style as corridor but STRONGER
-            let continuousEvent = CHHapticEvent(
-                eventType: .hapticContinuous,
-                parameters: [intensity, sharpness],
-                relativeTime: 0,
-                duration: routeDuration
-            )
-            
-            let pattern = try CHHapticPattern(events: [continuousEvent], parameters: [])
-            
-            // Use DEDICATED routePlayer (not continuousPlayer!)
+
+            var events: [CHHapticEvent] = []
+            for i in 0..<50 {
+                let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: routeIntensity)
+                let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: routeSharpness)
+                events.append(CHHapticEvent(
+                    eventType: .hapticContinuous,
+                    parameters: [intensity, sharpness],
+                    relativeTime: TimeInterval(i) * pulseInterval,
+                    duration: pulseDuration
+                ))
+            }
+
+            let pattern = try CHHapticPattern(events: events, parameters: [])
             routePlayer = try engine.makeAdvancedPlayer(with: pattern)
+            routePlayer?.loopEnabled = true
             try routePlayer?.start(atTime: CHHapticTimeImmediate)
-            
-            print("✅ Started route vibration: CONTINUOUS at 100% intensity (vs corridor's 50%)")
-            
+
+            print("✅ Started route vibration: rhythmic pulse (vs corridor continuous)")
+
         } catch {
             print("❌ Failed to start route vibration: \(error)")
-            // Fallback to UIKit haptic
             let impact = UIImpactFeedbackGenerator(style: .rigid)
             impact.prepare()
             impact.impactOccurred()

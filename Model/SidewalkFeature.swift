@@ -9,9 +9,29 @@ class SidewalkFeature: NSObject, MapFeature, MKOverlay {
     let featureType = "sidewalk"
     let properties: [String: Any]
     let coordinates: [CLLocationCoordinate2D]
+    /// JSON-space coordinates (post-stretch) used to infer north/south/east/west side.
+    private let designCoordinates: [[Double]]
 
     var coordinate: CLLocationCoordinate2D {
         return coordinates[0]
+    }
+
+    /// Cardinal side of the intersection, e.g. "North", "East".
+    var cardinalDirection: String {
+        if let explicit = properties["direction"] as? String ?? properties["side"] as? String,
+           !explicit.isEmpty {
+            return explicit.prefix(1).uppercased() + explicit.dropFirst().lowercased()
+        }
+        return Self.inferCardinalDirection(from: designCoordinates)
+    }
+
+    /// Spoken label, e.g. "North sidewalk".
+    var announcement: String {
+        if let phrase = properties["announcement"] as? String, !phrase.isEmpty {
+            return phrase
+        }
+        let dir = cardinalDirection
+        return dir.isEmpty ? "Sidewalk" : "\(dir) sidewalk"
     }
 
     var boundingMapRect: MKMapRect {
@@ -27,6 +47,7 @@ class SidewalkFeature: NSObject, MapFeature, MKOverlay {
     init(id: String, coordinates: [[Double]], properties: [String: Any]) {
         self.id = id
         self.properties = properties
+        self.designCoordinates = coordinates
 
         self.coordinates = coordinates.map { coord in
             let x = coord[0]
@@ -50,14 +71,47 @@ class SidewalkFeature: NSObject, MapFeature, MKOverlay {
 
     @MainActor
     func provideFeedback() {
-        let impact = UIImpactFeedbackGenerator(style: .light)
-        impact.impactOccurred()
+        FeedbackManager.shared.playPulseHaptic()
+        FeedbackManager.shared.speak(announcement)
+    }
+
+    /// Infers north/south/east/west from sidewalk geometry relative to intersection center.
+    /// Horizontal segments → north or south side; vertical segments → west or east side.
+    static func inferCardinalDirection(
+        from coords: [[Double]],
+        centerX: Double = 500,
+        centerY: Double = 500
+    ) -> String {
+        guard coords.count >= 2,
+              coords[0].count >= 2,
+              coords[coords.count - 1].count >= 2 else {
+            return ""
+        }
+
+        var sumX = 0.0
+        var sumY = 0.0
+        for coord in coords {
+            sumX += coord[0]
+            sumY += coord[1]
+        }
+        let midX = sumX / Double(coords.count)
+        let midY = sumY / Double(coords.count)
+
+        let start = coords[0]
+        let end = coords[coords.count - 1]
+        let dx = abs(end[0] - start[0])
+        let dy = abs(end[1] - start[1])
+
+        if dx >= dy {
+            return midY < centerY ? "North" : "South"
+        }
+        return midX < centerX ? "West" : "East"
     }
 
     func addToMap(_ mapView: MKMapView) {
         let polyline = SidewalkPolyline(coordinates: coordinates, count: coordinates.count)
         polyline.title = id
-        mapView.addOverlay(polyline)
+        mapView.addOverlay(polyline, level: .aboveRoads)
     }
 
     func removeFromMap(_ mapView: MKMapView) {

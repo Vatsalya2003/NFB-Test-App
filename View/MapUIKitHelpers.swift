@@ -63,6 +63,34 @@ enum MapCrosswalkStyle {
     static let dashPattern: [NSNumber] = [6, 4]
 }
 
+/// Level 2 intersection layout — sidewalk lines in designer JSON use 440/560 around center 500.
+enum MapIntersectionLayout {
+    static let center = 500.0
+    /// Designer offset for vertical sidewalks (X axis, not stretched). Tune this value.
+    static let sidewalkOffsetX = 120.0
+    /// Designer offset for horizontal sidewalks — smaller because Y is stretched 2.6× in MapDataLoader.
+    static var sidewalkOffsetY: Double { sidewalkOffsetX / yStretchFactor }
+    /// Keep in sync with MapDataLoader.stretchFactor.
+    private static let yStretchFactor = 2.6
+
+    static func remapCoordinate(_ coord: [Double]) -> [Double] {
+        guard coord.count >= 2 else { return coord }
+        return [remapX(coord[0]), remapY(coord[1])]
+    }
+
+    private static func remapX(_ value: Double) -> Double {
+        if value == 440 { return center - sidewalkOffsetX }
+        if value == 560 { return center + sidewalkOffsetX }
+        return value
+    }
+
+    private static func remapY(_ value: Double) -> Double {
+        if value == 440 { return center - sidewalkOffsetY }
+        if value == 560 { return center + sidewalkOffsetY }
+        return value
+    }
+}
+
 enum MapDestinationStyle {
     /// Yellow dot marking the route end / point of interest.
     static let color = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0)

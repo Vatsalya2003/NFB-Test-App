@@ -59,14 +59,16 @@ class MapDataLoader {
 
             case "sidewalk":
                 if let coords = coordinates as? [[Double]] {
-                    let stretchedCoords = stretchCoordinates(coords, stretchFactor: stretchFactor)
+                    let layoutCoords = coords.map { MapIntersectionLayout.remapCoordinate($0) }
+                    let stretchedCoords = stretchCoordinates(layoutCoords, stretchFactor: stretchFactor)
                     let sidewalk = SidewalkFeature(id: id, coordinates: stretchedCoords, properties: properties)
                     mapFeatures.append(sidewalk)
                 }
 
             case "crosswalk":
                 if let coords = coordinates as? [[Double]] {
-                    let stretchedCoords = stretchCoordinates(coords, stretchFactor: stretchFactor)
+                    let layoutCoords = coords.map { MapIntersectionLayout.remapCoordinate($0) }
+                    let stretchedCoords = stretchCoordinates(layoutCoords, stretchFactor: stretchFactor)
                     let crosswalk = CrosswalkFeature(id: id, coordinates: stretchedCoords, properties: properties)
                     mapFeatures.append(crosswalk)
                 }

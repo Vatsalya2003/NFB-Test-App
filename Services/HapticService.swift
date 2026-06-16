@@ -65,10 +65,21 @@ class HapticService {
     // MARK: - Initialization
     private init() {
         supportsHaptics = CHHapticEngine.capabilitiesForHardware().supportsHaptics
-    print("🎮 Device supports haptics: \(supportsHaptics)")
+        print("🎮 Device supports haptics: \(supportsHaptics)")
 
         setupHapticEngine()
+        observeVoiceOverChanges()
+    }
+
+    private func observeVoiceOverChanges() {
+        NotificationCenter.default.addObserver(
+            forName: UIAccessibility.voiceOverStatusDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.restartEngine()
         }
+    }
 
     
     // /// Check if device supports haptics

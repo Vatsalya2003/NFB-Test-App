@@ -1,9 +1,11 @@
 // FeedbackCustomizationTesterView.swift
 // Dev tool on home screen — preview map and try different haptic patterns per element.
+// Default patterns match HapticService (street continuous, route pulse, etc.).
 
 import SwiftUI
 import MapKit
 import CoreHaptics
+import AudioToolbox
 
 // MARK: - Custom Haptic Engine
 
@@ -13,6 +15,7 @@ class CustomHapticEngine: ObservableObject {
     private var previewPlayer: CHHapticPatternPlayer?
     private var continuousPlayer: CHHapticAdvancedPatternPlayer?
     private var activePattern: HapticPatternType?
+    private var dingTimer: Timer?
 
     @Published var touchedElementLabel: String?
 
@@ -26,6 +29,9 @@ class CustomHapticEngine: ObservableObject {
             let p = try Self.buildPreviewPattern(for: pattern)
             previewPlayer = try engine.makePlayer(with: p)
             try previewPlayer?.start(atTime: CHHapticTimeImmediate)
+            if pattern == .intersectionSlowPulse {
+                AudioServicesPlaySystemSound(1057)
+            }
         } catch {
             print("Haptic preview failed: \(error)")
         }
@@ -44,12 +50,22 @@ class CustomHapticEngine: ObservableObject {
             continuousPlayer?.loopEnabled = true
             try continuousPlayer?.start(atTime: CHHapticTimeImmediate)
             activePattern = pattern
+
+            if pattern == .intersectionSlowPulse {
+                AudioServicesPlaySystemSound(1057)
+                dingTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { [weak self] _ in
+                    guard self?.activePattern == .intersectionSlowPulse else { return }
+                    AudioServicesPlaySystemSound(1057)
+                }
+            }
         } catch {
             print("Continuous haptic failed: \(error)")
         }
     }
 
     func stopContinuous() {
+        dingTimer?.invalidate()
+        dingTimer = nil
         do {
             try continuousPlayer?.stop(atTime: CHHapticTimeImmediate)
         } catch {
@@ -65,87 +81,100 @@ class CustomHapticEngine: ObservableObject {
         stopContinuous()
     }
 
-    // MARK: Pattern Builders
+    // MARK: Pattern Builders (production defaults mirror HapticService)
 
     static func buildPreviewPattern(for type: HapticPatternType) throws -> CHHapticPattern {
-        switch type {
-        case .lightContinuous:
-            return try CHHapticPattern(events: [
-                CHHapticEvent(eventType: .hapticContinuous, parameters: [
-                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.3),
-                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.2)
-                ], relativeTime: 0, duration: 1.5)
-            ], parameters: [])
-
-        case .mediumContinuous:
-            return try CHHapticPattern(events: [
-                CHHapticEvent(eventType: .hapticContinuous, parameters: [
-                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.6),
-                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
-                ], relativeTime: 0, duration: 1.5)
-            ], parameters: [])
-
-        case .sharpTransient:
-            let events = (0..<3).map { i in
-                CHHapticEvent(eventType: .hapticTransient, parameters: [
-                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
-                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 1.0)
-                ], relativeTime: TimeInterval(i) * 0.15)
-            }
-            return try CHHapticPattern(events: events, parameters: [])
-
-        case .rhythmicPulse:
-            let events = (0..<8).map { i in
-                CHHapticEvent(eventType: .hapticContinuous, parameters: [
-                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.7),
-                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
-                ], relativeTime: TimeInterval(i) * 0.2, duration: 0.1)
-            }
-            return try CHHapticPattern(events: events, parameters: [])
-
-        case .heavyBuzz:
-            return try CHHapticPattern(events: [
-                CHHapticEvent(eventType: .hapticContinuous, parameters: [
-                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
-                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.1)
-                ], relativeTime: 0, duration: 1.5)
-            ], parameters: [])
-        }
+        try buildPattern(for: type, loopCount: previewLoopCount(for: type), durationScale: 1.0)
     }
 
     static func buildContinuousPattern(for type: HapticPatternType) throws -> CHHapticPattern {
+        try buildPattern(for: type, loopCount: continuousLoopCount(for: type), durationScale: 1.0)
+    }
+
+    private static func previewLoopCount(for type: HapticPatternType) -> Int {
         switch type {
+        case .streetContinuous, .lightContinuous, .heavyBuzz: return 1
+        case .routeRhythmic: return 8
+        case .intersectionSlowPulse: return 6
+        case .landmarkFastPulse: return 10
+        case .sharpTransient: return 3
+        }
+    }
+
+    private static func continuousLoopCount(for type: HapticPatternType) -> Int {
+        switch type {
+        case .streetContinuous, .lightContinuous, .heavyBuzz: return 1
+        case .routeRhythmic: return 50
+        case .intersectionSlowPulse: return 20
+        case .landmarkFastPulse: return 80
+        case .sharpTransient: return 6
+        }
+    }
+
+    private static func buildPattern(
+        for type: HapticPatternType,
+        loopCount: Int,
+        durationScale: Double
+    ) throws -> CHHapticPattern {
+        switch type {
+        case .streetContinuous:
+            return try CHHapticPattern(events: [
+                CHHapticEvent(eventType: .hapticContinuous, parameters: [
+                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.5),
+                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
+                ], relativeTime: 0, duration: loopCount == 1 ? 1.5 * durationScale : 100.0)
+            ], parameters: [])
+
+        case .routeRhythmic:
+            // Route: 0.12s on / 0.08s off at 100% (HapticService+Route)
+            let interval = 0.2 * durationScale
+            let duration = 0.12 * durationScale
+            let events = (0..<loopCount).map { i in
+                CHHapticEvent(eventType: .hapticContinuous, parameters: [
+                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
+                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.85)
+                ], relativeTime: TimeInterval(i) * interval, duration: duration)
+            }
+            return try CHHapticPattern(events: events, parameters: [])
+
+        case .intersectionSlowPulse:
+            // Intersection: 0.15s on / 0.35s off at 100% (HapticService pulseInterval)
+            let interval = 0.25 * durationScale
+            let duration = 0.15 * durationScale
+            let events = (0..<loopCount).map { i in
+                CHHapticEvent(eventType: .hapticContinuous, parameters: [
+                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
+                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
+                ], relativeTime: TimeInterval(i) * interval, duration: duration)
+            }
+            return try CHHapticPattern(events: events, parameters: [])
+
+        case .landmarkFastPulse:
+            // Landmark: 0.08s on / 0.04s off at 100% (HapticService landmark timing)
+            let interval = 0.12 * durationScale
+            let duration = 0.08 * durationScale
+            let events = (0..<loopCount).map { i in
+                CHHapticEvent(eventType: .hapticContinuous, parameters: [
+                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
+                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.7)
+                ], relativeTime: TimeInterval(i) * interval, duration: duration)
+            }
+            return try CHHapticPattern(events: events, parameters: [])
+
         case .lightContinuous:
             return try CHHapticPattern(events: [
                 CHHapticEvent(eventType: .hapticContinuous, parameters: [
                     CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.3),
                     CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.2)
-                ], relativeTime: 0, duration: 3.0)
-            ], parameters: [])
-
-        case .mediumContinuous:
-            return try CHHapticPattern(events: [
-                CHHapticEvent(eventType: .hapticContinuous, parameters: [
-                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.6),
-                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
-                ], relativeTime: 0, duration: 3.0)
+                ], relativeTime: 0, duration: 3.0 * durationScale)
             ], parameters: [])
 
         case .sharpTransient:
-            let events = (0..<6).map { i in
+            let events = (0..<loopCount).map { i in
                 CHHapticEvent(eventType: .hapticTransient, parameters: [
                     CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
                     CHHapticEventParameter(parameterID: .hapticSharpness, value: 1.0)
                 ], relativeTime: TimeInterval(i) * 0.15)
-            }
-            return try CHHapticPattern(events: events, parameters: [])
-
-        case .rhythmicPulse:
-            let events = (0..<10).map { i in
-                CHHapticEvent(eventType: .hapticContinuous, parameters: [
-                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.7),
-                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
-                ], relativeTime: TimeInterval(i) * 0.2, duration: 0.1)
             }
             return try CHHapticPattern(events: events, parameters: [])
 
@@ -154,7 +183,7 @@ class CustomHapticEngine: ObservableObject {
                 CHHapticEvent(eventType: .hapticContinuous, parameters: [
                     CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
                     CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.1)
-                ], relativeTime: 0, duration: 3.0)
+                ], relativeTime: 0, duration: 3.0 * durationScale)
             ], parameters: [])
         }
     }
@@ -164,6 +193,7 @@ class CustomHapticEngine: ObservableObject {
 
 struct TesterStaticMapView: UIViewRepresentable {
     let features: [MapFeature]
+    let routes: [RouteFeature]
     var selections: [MapElementType: HapticPatternType]
     let engine: CustomHapticEngine
 
@@ -176,14 +206,16 @@ struct TesterStaticMapView: UIViewRepresentable {
         }
         MapVisibleRectHelper.fitMapView(
             mapView,
-            features: MapVisibleRectHelper.corridorFeatures(from: features),
+            features: features,
+            routes: routes,
             edgePadding: padding
         )
     }
 
     func makeUIView(context: Context) -> MKMapView {
         let mapView = FittingMapView()
-        mapView.fitFeatures = MapVisibleRectHelper.corridorFeatures(from: features)
+        mapView.fitFeatures = features
+        mapView.fitRoutes = routes
         mapView.fitToSafeArea = false
         mapView.customEdgePadding = UIEdgeInsets(top: 30, left: 40, bottom: 155, right: 40)
 
@@ -229,18 +261,22 @@ struct TesterStaticMapView: UIViewRepresentable {
     }
 
     func updateUIView(_ mapView: MKMapView, context: Context) {
-        let corridorFeatures = MapVisibleRectHelper.corridorFeatures(from: features)
-        context.coordinator.features = corridorFeatures
+        context.coordinator.features = features
+        context.coordinator.routes = routes
         context.coordinator.selections = selections
 
         let featureOverlays = mapView.overlays.filter { !($0 is BlankTileOverlay) }
         mapView.removeOverlays(featureOverlays)
         mapView.removeAnnotations(mapView.annotations)
 
-        corridorFeatures.forEach { $0.addToMap(mapView) }
+        features.filter { $0.featureType == "corridor" }.forEach { $0.addToMap(mapView) }
+        features.compactMap { $0 as? IntersectionFeature }.forEach { $0.addToMap(mapView) }
+        features.compactMap { $0 as? LandmarkFeature }.forEach { $0.addToMap(mapView) }
+        routes.forEach { $0.addToMap(mapView) }
 
         if let fittingMapView = mapView as? FittingMapView {
-            fittingMapView.fitFeatures = corridorFeatures
+            fittingMapView.fitFeatures = features
+            fittingMapView.fitRoutes = routes
         }
         applyVisibleRect(to: mapView)
     }
@@ -258,6 +294,7 @@ struct TesterStaticMapView: UIViewRepresentable {
 
 class TesterMapCoordinator: NSObject, MKMapViewDelegate {
     var features: [MapFeature] = []
+    var routes: [RouteFeature] = []
     var selections: [MapElementType: HapticPatternType] = [:]
     let engine: CustomHapticEngine
 
@@ -278,11 +315,11 @@ class TesterMapCoordinator: NSObject, MKMapViewDelegate {
         let feature = findFeature(at: point, in: mapView)
 
         if let feature = feature,
-           let elementType = mapElementType(for: feature.featureType),
+           let elementType = MapElementType.from(featureType: feature.featureType),
            let pattern = selections[elementType] {
             engine.preview(pattern)
             DispatchQueue.main.async {
-                self.engine.touchedElementLabel = feature.featureType.capitalized
+                self.engine.touchedElementLabel = elementType.rawValue
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
                 guard let self = self else { return }
@@ -321,10 +358,10 @@ class TesterMapCoordinator: NSObject, MKMapViewDelegate {
         activeFeature = feature
 
         if let feature = feature,
-           let elementType = mapElementType(for: feature.featureType),
+           let elementType = MapElementType.from(featureType: feature.featureType),
            let pattern = selections[elementType] {
             engine.startContinuous(pattern)
-            DispatchQueue.main.async { self.engine.touchedElementLabel = feature.featureType.capitalized }
+            DispatchQueue.main.async { self.engine.touchedElementLabel = elementType.rawValue }
         } else {
             DispatchQueue.main.async { self.engine.touchedElementLabel = nil }
         }
@@ -338,10 +375,10 @@ class TesterMapCoordinator: NSObject, MKMapViewDelegate {
             activeFeature = newFeature
 
             if let feature = newFeature,
-               let elementType = mapElementType(for: feature.featureType),
+               let elementType = MapElementType.from(featureType: feature.featureType),
                let pattern = selections[elementType] {
                 engine.startContinuous(pattern)
-                DispatchQueue.main.async { self.engine.touchedElementLabel = feature.featureType.capitalized }
+                DispatchQueue.main.async { self.engine.touchedElementLabel = elementType.rawValue }
             } else {
                 DispatchQueue.main.async { self.engine.touchedElementLabel = nil }
             }
@@ -357,24 +394,28 @@ class TesterMapCoordinator: NSObject, MKMapViewDelegate {
     // MARK: Hit Testing
 
     private func findFeature(at point: CGPoint, in mapView: MKMapView) -> MapFeature? {
-        for feature in features where feature.featureType == "intersection" || feature.featureType == "landmark" {
-            if isPointNearFeature(point, feature: feature, in: mapView) {
-                return feature
-            }
+        for feature in features.compactMap({ $0 as? IntersectionFeature }) {
+            if isPointNearFeature(point, feature: feature, in: mapView) { return feature }
         }
-        // Purple anchor dots on corridors should trigger landmark feedback
-        for annotation in mapView.annotations {
-            if let anchor = annotation as? LandmarkAnchorAnnotation {
-                let anchorPoint = mapView.convert(anchor.coordinate, toPointTo: mapView)
-                let diameter = PhysicalDimensions.mmToPoints(8.0)
-                if hypot(point.x - anchorPoint.x, point.y - anchorPoint.y) < diameter / 2 {
-                    return anchor.landmark
-                }
-            }
+        for feature in features.compactMap({ $0 as? LandmarkFeature }) {
+            if isPointNearFeature(point, feature: feature, in: mapView) { return feature }
         }
+        if let route = route(at: point, in: mapView) { return route }
         for feature in features where feature.featureType == "corridor" {
-            if isPointNearFeature(point, feature: feature, in: mapView) {
-                return feature
+            if isPointNearFeature(point, feature: feature, in: mapView) { return feature }
+        }
+        return nil
+    }
+
+    private func route(at point: CGPoint, in mapView: MKMapView) -> RouteFeature? {
+        let threshold = max(PhysicalDimensions.mmToPoints(MapRouteStyle.lineWidthMM) / 2, 22)
+        for route in routes {
+            for i in 0..<(route.coordinates.count - 1) {
+                let a = mapView.convert(route.coordinates[i], toPointTo: mapView)
+                let b = mapView.convert(route.coordinates[i + 1], toPointTo: mapView)
+                if distanceFromPoint(point, toLineFrom: a, to: b) < threshold {
+                    return route
+                }
             }
         }
         return nil
@@ -384,13 +425,20 @@ class TesterMapCoordinator: NSObject, MKMapViewDelegate {
         switch feature.featureType {
         case "landmark":
             if let landmark = feature as? LandmarkFeature {
-                let fp = mapView.convert(landmark.coordinate, toPointTo: mapView)
-                return hypot(point.x - fp.x, point.y - fp.y) < 25
+                let anchor = mapView.convert(landmark.coordinate, toPointTo: mapView)
+                let offset = MapLandmarkStyle.sideOffset(landmark.side)
+                let box = CGPoint(x: anchor.x + offset.x, y: anchor.y + offset.y)
+                let boxThreshold = max(PhysicalDimensions.mmToPoints(MapLandmarkStyle.boxWidthMM) / 2, 22)
+                if hypot(point.x - anchor.x, point.y - anchor.y) < 30
+                    || hypot(point.x - box.x, point.y - box.y) < boxThreshold {
+                    return true
+                }
             }
         case "intersection":
             if let intersection = feature as? IntersectionFeature {
                 let fp = mapView.convert(intersection.coordinate, toPointTo: mapView)
-                return hypot(point.x - fp.x, point.y - fp.y) < 25
+                let half = max(PhysicalDimensions.mmToPoints(MapIntersectionStyle.sideMM) / 2, 22)
+                return hypot(point.x - fp.x, point.y - fp.y) < half
             }
         case "corridor":
             if let corridor = feature as? CorridorFeature {
@@ -416,68 +464,44 @@ class TesterMapCoordinator: NSObject, MKMapViewDelegate {
         return hypot(p.x - (a.x + t * (b.x - a.x)), p.y - (a.y + t * (b.y - a.y)))
     }
 
-    private func mapElementType(for featureType: String) -> MapElementType? {
-        switch featureType {
-        case "corridor": return .corridor
-        case "intersection": return .intersection
-        case "landmark": return .landmark
-        default: return nil
-        }
-    }
-
     // MARK: MKMapViewDelegate
 
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
         if overlay is BlankTileOverlay {
             return WhiteTileRenderer(overlay: overlay)
         }
+        if let routeLine = overlay as? RoutePolyline {
+            let renderer = MKPolylineRenderer(polyline: routeLine)
+            renderer.strokeColor = MapRouteStyle.color
+            renderer.lineWidth = PhysicalDimensions.mmToPoints(MapRouteStyle.lineWidthMM)
+            renderer.lineCap = .round
+            renderer.lineJoin = .round
+            return renderer
+        }
         if let polyline = overlay as? MKPolyline {
             let renderer = MKPolylineRenderer(polyline: polyline)
             renderer.strokeColor = MapRoadStyle.blue
             renderer.lineWidth = PhysicalDimensions.mmToPoints(MapRoadStyle.lineWidthMM)
-            renderer.lineCap = .square
-            renderer.lineJoin = .miter
-            renderer.miterLimit = 10
+            renderer.lineCap = .round
+            renderer.lineJoin = .round
             return renderer
         }
         return MKOverlayRenderer(overlay: overlay)
     }
 
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-        if let anchor = annotation as? LandmarkAnchorAnnotation {
-            let view = MKAnnotationView(annotation: anchor, reuseIdentifier: "tester_anchor")
-            let diameter = PhysicalDimensions.mmToPoints(8.0)
-            view.frame = CGRect(x: 0, y: 0, width: diameter, height: diameter)
-            view.backgroundColor = .systemPurple
-            view.layer.cornerRadius = diameter / 2
-            view.layer.borderWidth = PhysicalDimensions.mmToPoints(0.5)
-            view.layer.borderColor = UIColor.white.cgColor
-            view.displayPriority = .defaultLow
-            if #available(iOS 14.0, *) {
-                view.zPriority = .min
-            }
+        if annotation is IntersectionFeature {
+            let reuseID = "tester_intersection"
+            let view = mapView.dequeueReusableAnnotationView(withIdentifier: reuseID) as? IntersectionAnnotationView
+                ?? IntersectionAnnotationView(annotation: annotation, reuseIdentifier: reuseID)
+            view.annotation = annotation
             return view
         }
-        if let intersection = annotation as? IntersectionFeature {
-            return IntersectionAnnotationView(annotation: intersection, reuseIdentifier: "tester_intersection")
-        }
-        if let landmark = annotation as? LandmarkFeature {
-            let view = MKAnnotationView(annotation: landmark, reuseIdentifier: "tester_landmark")
-            let w = PhysicalDimensions.mmToPoints(6.0)
-            let h = PhysicalDimensions.mmToPoints(4.0)
-            view.frame = CGRect(x: 0, y: 0, width: w, height: h)
-            view.backgroundColor = .systemRed
-            view.layer.borderWidth = PhysicalDimensions.mmToPoints(0.75)
-            view.layer.borderColor = UIColor.white.cgColor
-            view.layer.cornerRadius = PhysicalDimensions.mmToPoints(1.0)
-            let label = UILabel(frame: view.bounds)
-            label.text = landmark.title?.first?.uppercased() ?? "L"
-            label.textAlignment = .center
-            label.textColor = .white
-            label.font = .boldSystemFont(ofSize: PhysicalDimensions.mmToPoints(3.0))
-            label.adjustsFontSizeToFitWidth = true
-            view.addSubview(label)
-            view.canShowCallout = false
+        if annotation is LandmarkFeature {
+            let reuseID = "tester_landmark"
+            let view = mapView.dequeueReusableAnnotationView(withIdentifier: reuseID) as? LandmarkAnnotationView
+                ?? LandmarkAnnotationView(annotation: annotation, reuseIdentifier: reuseID)
+            view.annotation = annotation
             return view
         }
         return nil
@@ -505,6 +529,8 @@ struct FeedbackCustomizationTesterView: View {
         }
         .navigationTitle("Feedback Setup")
         .navigationBarTitleDisplayMode(.inline)
+        .disableInteractivePopGesture()
+        .onAppear { FeedbackManager.shared.stopAllFeedback() }
         .onDisappear { engine.stopAll() }
     }
 
@@ -520,7 +546,7 @@ struct FeedbackCustomizationTesterView: View {
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text("Tap a pattern to feel it, then choose one for each element.")
+            Text("Defaults match the live route study map. Tap a pattern to preview, assign per element, then explore.")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -614,6 +640,7 @@ struct FeedbackCustomizationTesterView: View {
     private func systemImage(for element: MapElementType) -> String {
         switch element {
         case .corridor: return "line.3.horizontal"
+        case .route: return "point.topleft.down.curvedto.point.bottomright.up"
         case .intersection: return "arrow.triangle.branch"
         case .landmark: return "mappin.and.ellipse"
         }
@@ -622,8 +649,9 @@ struct FeedbackCustomizationTesterView: View {
     private func accentColor(for element: MapElementType) -> Color {
         switch element {
         case .corridor: return .blue
+        case .route: return .cyan
         case .intersection: return .red
-        case .landmark: return .red
+        case .landmark: return .purple
         }
     }
 }
@@ -634,12 +662,14 @@ struct TesterMapExplorationView: View {
     let selections: [MapElementType: HapticPatternType]
 
     @State private var features: [MapFeature] = []
+    @State private var routes: [RouteFeature] = []
     @StateObject private var engine = CustomHapticEngine()
 
     var body: some View {
         ZStack(alignment: .bottom) {
             TesterStaticMapView(
                 features: features,
+                routes: routes,
                 selections: selections,
                 engine: engine
             )
@@ -660,8 +690,11 @@ struct TesterMapExplorationView: View {
         .navigationTitle("Explore Map")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(false)
+        .disableInteractivePopGesture()
         .onAppear {
+            FeedbackManager.shared.stopAllFeedback()
             features = MapDataLoader.loadMapFeatures(from: "testMap_Condition1")
+            routes = RouteMapDataLoader.loadRouteFeatures(from: "route_marriott_to_jwmarriott")
         }
         .onDisappear {
             engine.stopAll()

@@ -64,6 +64,7 @@ struct MapDesignerView: View {
         .background(background.ignoresSafeArea())
         .navigationTitle("Map Designer")
         .navigationBarTitleDisplayMode(.inline)
+        .disableInteractivePopGesture()
     }
 
     /// Fits an aspect-correct canvas (matching the device viewport) into the available space.

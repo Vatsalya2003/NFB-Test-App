@@ -11,13 +11,9 @@ extension FeedbackManager {
     /// Route: Faster, rhythmic pulsing (feels like "walking guidance")
     /// Corridor: Continuous steady vibration (feels like "on path")
     func startRoutePulsing() {
-        if isPlayingContinuousSound {
-            print("Stopping corridor vibration for route")
-            stopContinuousSound()
-        }
-        
-        // Use the existing pulsing but with route-specific parameters
-        // In a full implementation, HapticService would have a separate route pattern
+        stopContinuousSound()
+        stopContinuousPulsing()
+
         hapticService.startRouteVibration()
         print("Started route pulsing vibration")
     }

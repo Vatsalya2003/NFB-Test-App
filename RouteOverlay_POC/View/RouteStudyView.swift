@@ -47,6 +47,7 @@ struct RouteStudyView: View {
         .accessibilityAction(named: "Escape") {
             performBackNavigation()
         }
+        .disableInteractivePopGesture()
         .background(
             NavigationLink(
                 destination: selectedIntersection.map { IntersectionDetailView(intersection: $0) },
@@ -69,7 +70,7 @@ struct RouteStudyView: View {
 
         if UIAccessibility.isVoiceOverRunning {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                let message = "Navigation map. Blue lines show streets. Touch roads for vibration feedback. Double tap an intersection to zoom in."
+                let message = "Navigation map. Touch and drag the map to feel streets and hear names. Double tap an intersection to zoom in."
                 UIAccessibility.post(notification: .screenChanged, argument: message)
             }
         }

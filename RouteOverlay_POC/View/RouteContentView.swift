@@ -87,6 +87,7 @@ struct RouteContentView: View {
                 Spacer()
             }
             .navigationBarTitleDisplayMode(.inline)
+            .disableInteractivePopGesture()
         }
     }
 }

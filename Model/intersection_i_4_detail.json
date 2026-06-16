@@ -1,183 +1,400 @@
 {
   "type": "FeatureCollection",
   "intersectionId": "i_4",
-  "description": "East 2nd Street and Brazos Street — plus-shaped 4-way, route turns left",
-  "orientation": "track-up",
-  "bounds": { "width": 1000, "height": 1000 },
+  "description": "East 2nd Street and Brazos Street \u2014 plus-shaped 4-way, route turns left",
+  "orientation": "e2nd-vertical",
+  "bounds": {
+    "width": 1000,
+    "height": 1000
+  },
   "features": [
     {
       "id": "l2_road_brazos_south",
       "type": "corridor",
       "geometry": {
         "type": "LineString",
-        "coordinates": [[500, 500], [500, 900]]
+        "coordinates": [
+          [
+            500,
+            500
+          ],
+          [
+            900,
+            500
+          ]
+        ]
       },
-      "properties": { "name": "Brazos Street", "level": 2 }
+      "properties": {
+        "name": "Brazos Street",
+        "level": 2
+      }
     },
     {
       "id": "l2_road_brazos_north",
       "type": "corridor",
       "geometry": {
         "type": "LineString",
-        "coordinates": [[500, 100], [500, 500]]
+        "coordinates": [
+          [
+            100,
+            500
+          ],
+          [
+            500,
+            500
+          ]
+        ]
       },
-      "properties": { "name": "Brazos Street", "level": 2 }
+      "properties": {
+        "name": "Brazos Street",
+        "level": 2
+      }
     },
     {
       "id": "l2_road_e2nd_west",
       "type": "corridor",
       "geometry": {
         "type": "LineString",
-        "coordinates": [[100, 500], [500, 500]]
+        "coordinates": [
+          [
+            500,
+            100
+          ],
+          [
+            500,
+            500
+          ]
+        ]
       },
-      "properties": { "name": "East 2nd Street", "level": 2 }
+      "properties": {
+        "name": "East 2nd Street",
+        "level": 2
+      }
     },
     {
       "id": "l2_road_e2nd_east",
       "type": "corridor",
       "geometry": {
         "type": "LineString",
-        "coordinates": [[500, 500], [900, 500]]
+        "coordinates": [
+          [
+            500,
+            500
+          ],
+          [
+            500,
+            900
+          ]
+        ]
       },
-      "properties": { "name": "East 2nd Street", "level": 2 }
-    },
-    {
-      "id": "l2_sw_brazos_west_south",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[440, 560], [440, 900]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_brazos_east_south",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[560, 560], [560, 900]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_brazos_west_north",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[440, 100], [440, 440]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_brazos_east_north",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[560, 100], [560, 440]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_e2nd_north_west",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[100, 440], [440, 440]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_e2nd_south_west",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[100, 560], [440, 560]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_e2nd_north_east",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[560, 440], [900, 440]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_e2nd_south_east",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[560, 560], [900, 560]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_cw_north",
-      "type": "crosswalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[440, 440], [560, 440]]
-      },
-      "properties": { "name": "Crosswalk north", "level": 2 }
-    },
-    {
-      "id": "l2_cw_south",
-      "type": "crosswalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[440, 560], [560, 560]]
-      },
-      "properties": { "name": "Crosswalk south", "level": 2 }
-    },
-    {
-      "id": "l2_cw_west",
-      "type": "crosswalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[440, 440], [440, 560]]
-      },
-      "properties": { "name": "Crosswalk west", "level": 2 }
-    },
-    {
-      "id": "l2_cw_east",
-      "type": "crosswalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[560, 440], [560, 560]]
-      },
-      "properties": { "name": "Crosswalk east", "level": 2 }
+      "properties": {
+        "name": "East 2nd Street",
+        "level": 2
+      }
     },
     {
       "id": "l2_intersection_center",
       "type": "intersection",
       "geometry": {
         "type": "Point",
-        "coordinates": [500, 500]
+        "coordinates": [
+          500,
+          500
+        ]
       },
-      "properties": { "name": "East 2nd Street and Brazos Street", "level": 2 }
+      "properties": {
+        "name": "East 2nd Street and Brazos Street",
+        "level": 2
+      }
     },
     {
-      "id": "l2_poi_jw",
+      "id": "l2_poi_marriott",
       "type": "landmark",
       "geometry": {
         "type": "Point",
-        "coordinates": [500, 200]
+        "coordinates": [
+          500,
+          200
+        ]
       },
       "properties": {
-        "name": "JW Marriott Austin",
-        "tag": "JW",
+        "name": "Austin Marriott Downtown",
+        "tag": "AM",
         "side": "right",
         "category": "hotel",
-        "announcement": "JW Marriott Austin on your right"
+        "announcement": "Austin Marriott Downtown on your right"
+      }
+    },
+    {
+      "id": "l2_sw_brazos_h_w_north",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            100,
+            440
+          ],
+          [
+            440,
+            440
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Sidewalk",
+        "level": 2
+      }
+    },
+    {
+      "id": "l2_sw_brazos_h_e_north",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            560,
+            440
+          ],
+          [
+            900,
+            440
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Sidewalk",
+        "level": 2
+      }
+    },
+    {
+      "id": "l2_sw_brazos_h_w_south",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            100,
+            560
+          ],
+          [
+            440,
+            560
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Sidewalk",
+        "level": 2
+      }
+    },
+    {
+      "id": "l2_sw_brazos_h_e_south",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            560,
+            560
+          ],
+          [
+            900,
+            560
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Sidewalk",
+        "level": 2
+      }
+    },
+    {
+      "id": "l2_sw_e2nd_n_west",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440,
+            100
+          ],
+          [
+            440,
+            440
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Sidewalk",
+        "level": 2
+      }
+    },
+    {
+      "id": "l2_sw_e2nd_s_west",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440,
+            560
+          ],
+          [
+            440,
+            900
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Sidewalk",
+        "level": 2
+      }
+    },
+    {
+      "id": "l2_sw_e2nd_n_east",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            560,
+            100
+          ],
+          [
+            560,
+            440
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Sidewalk",
+        "level": 2
+      }
+    },
+    {
+      "id": "l2_sw_e2nd_s_east",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            560,
+            560
+          ],
+          [
+            560,
+            900
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Sidewalk",
+        "level": 2
+      }
+    },
+    {
+      "id": "l2_cw_north",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440,
+            440
+          ],
+          [
+            560,
+            440
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Crosswalk north",
+        "level": 2
+      }
+    },
+    {
+      "id": "l2_cw_south",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440,
+            560
+          ],
+          [
+            560,
+            560
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Crosswalk south",
+        "level": 2
+      }
+    },
+    {
+      "id": "l2_cw_west",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440,
+            440
+          ],
+          [
+            440,
+            560
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Crosswalk west",
+        "level": 2
+      }
+    },
+    {
+      "id": "l2_cw_east",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            560,
+            440
+          ],
+          [
+            560,
+            560
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Crosswalk east",
+        "level": 2
       }
     }
   ],
   "route": {
     "geometry": {
       "type": "LineString",
-      "coordinates": [[100, 500], [500, 500], [500, 100]]
+      "coordinates": [
+        [
+          560,
+          100
+        ],
+        [
+          560,
+          560
+        ],
+        [
+          100,
+          560
+        ]
+      ]
     },
     "properties": {
       "name": "Route through intersection",

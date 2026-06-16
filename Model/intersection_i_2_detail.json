@@ -1,172 +1,382 @@
 {
   "type": "FeatureCollection",
   "intersectionId": "i_2",
-  "description": "East 1st Street and San Jacinto Boulevard — plus-shaped 4-way, route turns right",
-  "orientation": "track-up",
-  "bounds": { "width": 1000, "height": 1000 },
+  "description": "East 1st Street and San Jacinto Boulevard \u2014 plus-shaped 4-way, route continues south on E 1st",
+  "orientation": "e1st-vertical",
+  "bounds": {
+    "width": 1000,
+    "height": 1000
+  },
   "features": [
     {
       "id": "l2_road_sj_south",
       "type": "corridor",
       "geometry": {
         "type": "LineString",
-        "coordinates": [[500, 500], [500, 900]]
+        "coordinates": [
+          [
+            500,
+            500
+          ],
+          [
+            900,
+            500
+          ]
+        ]
       },
-      "properties": { "name": "San Jacinto Boulevard", "level": 2 }
+      "properties": {
+        "name": "San Jacinto Boulevard",
+        "level": 2
+      }
     },
     {
       "id": "l2_road_sj_north",
       "type": "corridor",
       "geometry": {
         "type": "LineString",
-        "coordinates": [[500, 100], [500, 500]]
+        "coordinates": [
+          [
+            100,
+            500
+          ],
+          [
+            500,
+            500
+          ]
+        ]
       },
-      "properties": { "name": "San Jacinto Boulevard", "level": 2 }
+      "properties": {
+        "name": "San Jacinto Boulevard",
+        "level": 2
+      }
     },
     {
       "id": "l2_road_e1st_west",
       "type": "corridor",
       "geometry": {
         "type": "LineString",
-        "coordinates": [[100, 500], [500, 500]]
+        "coordinates": [
+          [
+            500,
+            100
+          ],
+          [
+            500,
+            500
+          ]
+        ]
       },
-      "properties": { "name": "East 1st Street", "level": 2 }
+      "properties": {
+        "name": "East 1st Street",
+        "level": 2
+      }
     },
     {
       "id": "l2_road_e1st_east",
       "type": "corridor",
       "geometry": {
         "type": "LineString",
-        "coordinates": [[500, 500], [900, 500]]
+        "coordinates": [
+          [
+            500,
+            500
+          ],
+          [
+            500,
+            900
+          ]
+        ]
       },
-      "properties": { "name": "East 1st Street", "level": 2 }
-    },
-    {
-      "id": "l2_sw_sj_west_south",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[440, 560], [440, 900]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_sj_east_south",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[560, 560], [560, 900]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_sj_west_north",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[440, 100], [440, 440]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_sj_east_north",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[560, 100], [560, 440]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_e1st_north_west",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[100, 440], [440, 440]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_e1st_south_west",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[100, 560], [440, 560]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_e1st_north_east",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[560, 440], [900, 440]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_sw_e1st_south_east",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[560, 560], [900, 560]]
-      },
-      "properties": { "name": "Sidewalk", "level": 2 }
-    },
-    {
-      "id": "l2_cw_north",
-      "type": "crosswalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[440, 440], [560, 440]]
-      },
-      "properties": { "name": "Crosswalk north", "level": 2 }
-    },
-    {
-      "id": "l2_cw_south",
-      "type": "crosswalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[440, 560], [560, 560]]
-      },
-      "properties": { "name": "Crosswalk south", "level": 2 }
-    },
-    {
-      "id": "l2_cw_west",
-      "type": "crosswalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[440, 440], [440, 560]]
-      },
-      "properties": { "name": "Crosswalk west", "level": 2 }
-    },
-    {
-      "id": "l2_cw_east",
-      "type": "crosswalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[560, 440], [560, 560]]
-      },
-      "properties": { "name": "Crosswalk east", "level": 2 }
+      "properties": {
+        "name": "East 1st Street",
+        "level": 2
+      }
     },
     {
       "id": "l2_intersection_center",
       "type": "intersection",
       "geometry": {
         "type": "Point",
-        "coordinates": [500, 500]
+        "coordinates": [
+          500,
+          500
+        ]
       },
-      "properties": { "name": "East 1st Street and San Jacinto Boulevard", "level": 2 }
+      "properties": {
+        "name": "East 1st Street and San Jacinto Boulevard",
+        "level": 2
+      }
+    },
+    {
+      "id": "l2_sw_sj_h_n_north",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            100,
+            440
+          ],
+          [
+            440,
+            440
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Sidewalk"
+      }
+    },
+    {
+      "id": "l2_sw_sj_h_s_north",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            560,
+            440
+          ],
+          [
+            900,
+            440
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Sidewalk"
+      }
+    },
+    {
+      "id": "l2_sw_sj_h_n_south",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            100,
+            560
+          ],
+          [
+            440,
+            560
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Sidewalk"
+      }
+    },
+    {
+      "id": "l2_sw_sj_h_s_south",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            560,
+            560
+          ],
+          [
+            900,
+            560
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Sidewalk"
+      }
+    },
+    {
+      "id": "l2_sw_e1st_n_west",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440,
+            100
+          ],
+          [
+            440,
+            440
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Sidewalk"
+      }
+    },
+    {
+      "id": "l2_sw_e1st_s_west",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440,
+            560
+          ],
+          [
+            440,
+            900
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Sidewalk"
+      }
+    },
+    {
+      "id": "l2_sw_e1st_n_east",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            560,
+            100
+          ],
+          [
+            560,
+            440
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Sidewalk"
+      }
+    },
+    {
+      "id": "l2_sw_e1st_s_east",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            560,
+            560
+          ],
+          [
+            560,
+            900
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Sidewalk"
+      }
+    },
+    {
+      "id": "l2_cw_north",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440,
+            440
+          ],
+          [
+            560,
+            440
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Crosswalk north"
+      }
+    },
+    {
+      "id": "l2_cw_south",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440,
+            560
+          ],
+          [
+            560,
+            560
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Crosswalk south"
+      }
+    },
+    {
+      "id": "l2_cw_west",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440,
+            440
+          ],
+          [
+            440,
+            560
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Crosswalk west"
+      }
+    },
+    {
+      "id": "l2_cw_east",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            560,
+            440
+          ],
+          [
+            560,
+            560
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Crosswalk east"
+      }
     }
   ],
   "route": {
     "geometry": {
       "type": "LineString",
-      "coordinates": [[500, 900], [500, 500], [900, 500]]
+      "coordinates": [
+        [
+          560,
+          100
+        ],
+        [
+          560,
+          900
+        ]
+      ]
     },
     "properties": {
       "name": "Route through intersection",
-      "action": "Turn right onto East 1st Street",
+      "action": "Continue south on East 1st Street",
       "departure": "Route",
       "destination": "Route"
     }

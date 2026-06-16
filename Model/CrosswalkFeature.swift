@@ -57,7 +57,7 @@ class CrosswalkFeature: NSObject, MapFeature, MKOverlay {
     func addToMap(_ mapView: MKMapView) {
         let polyline = CrosswalkPolyline(coordinates: coordinates, count: coordinates.count)
         polyline.title = id
-        mapView.addOverlay(polyline)
+        mapView.addOverlay(polyline, level: .aboveRoads)
     }
 
     func removeFromMap(_ mapView: MKMapView) {
