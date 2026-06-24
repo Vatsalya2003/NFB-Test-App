@@ -10,7 +10,7 @@ class RouteMapDataLoader {
     static var stretchFactor: Double = 2.6
     
     /// Load route features from JSON
-    static func loadRouteFeatures(from filename: String) -> [RouteFeature] {
+    static func loadRouteFeatures(from filename: String, mirror180: Bool = false) -> [RouteFeature] {
         guard let url = Bundle.main.url(forResource: filename, withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -29,8 +29,10 @@ class RouteMapDataLoader {
                 continue
             }
             
-            // Stretch route coordinates to match base map
-            let stretchedCoords = stretchCoordinates(coordinates, stretchFactor: stretchFactor)
+            let mirroredCoords = mirror180
+                ? coordinates.map { MapOrientation.mirrorDesignerCoordinate($0) }
+                : coordinates
+            let stretchedCoords = stretchCoordinates(mirroredCoords, stretchFactor: stretchFactor)
             let route = RouteFeature(id: id, coordinates: stretchedCoords, properties: properties)
             routes.append(route)
         }

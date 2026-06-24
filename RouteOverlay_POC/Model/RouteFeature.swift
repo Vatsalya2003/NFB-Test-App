@@ -18,7 +18,29 @@ class RouteFeature: NSObject, MapFeature, MKOverlay {
     let waypoints: [String]    // Ordered list of intersection/landmark IDs
     let departureName: String?
     let destinationName: String?
-    
+
+    /// Short label while dragging on route segments after the first leg.
+    var explorationAnnouncement: String { "Route" }
+
+    /// Start → first intersection: "Route to JW Marriott Downtown" / "Route to Austin Marriott Downtown".
+    var routeToDestinationAnnouncement: String {
+        "Route to \(Self.spokenRouteDestination(destinationName ?? "your destination"))"
+    }
+
+    func explorationAnnouncement(forSegmentIndex segmentIndex: Int) -> String {
+        segmentIndex == 0 ? routeToDestinationAnnouncement : explorationAnnouncement
+    }
+
+    /// Spoken destination names for route guidance.
+    static func spokenRouteDestination(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        switch trimmed {
+        case "JW Marriott Austin": return "JW Marriott Downtown"
+        case "Austin Marriott Downtown": return "Austin Marriott Downtown"
+        default: return trimmed
+        }
+    }
+
     var coordinate: CLLocationCoordinate2D {
         return coordinates.first ?? CLLocationCoordinate2D(latitude: 0, longitude: 0)
     }
@@ -73,8 +95,7 @@ class RouteFeature: NSObject, MapFeature, MKOverlay {
     
     @MainActor
     func provideFeedback() {
-        // Announce route when first touched
-        FeedbackManager.shared.speak("Route: \(routeName)")
+        FeedbackManager.shared.speak(explorationAnnouncement)
     }
     
     func addToMap(_ mapView: MKMapView) {
@@ -101,6 +122,15 @@ class RoutePolyline: MKPolyline {
 class RouteEndpointFeature: NSObject, MapFeature, MKAnnotation {
     enum Kind { case departure, destination }
 
+    /// Spoken at the yellow end dot in Level 2 intersection detail.
+    static let intersectionRouteEndAnnouncement =
+        "End of route. Double tap to return to map overview."
+
+    /// Spoken at the yellow start dot in Level 2 intersection detail.
+    static func intersectionDepartureAnnouncement(intersectionName: String) -> String {
+        "Your location at the intersection of \(intersectionName)"
+    }
+
     let id: String
     let featureType = "routeEndpoint"
     let kind: Kind
@@ -109,11 +139,20 @@ class RouteEndpointFeature: NSObject, MapFeature, MKAnnotation {
     dynamic var title: String?
 
     var announcement: String {
-        let name = properties["name"] as? String ?? "Location"
+        let name = Self.spokenName(properties["name"] as? String ?? "Location")
         switch kind {
-        case .departure: return "Your location: \(name)"
-        case .destination: return "Destination: \(name)"
+        case .departure: return "Your location \(name)"
+        case .destination: return "Destination \(name)"
         }
+    }
+
+    /// e.g. "JW Marriott Austin" → "JW Marriott Austin hotel"
+    private static func spokenName(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "Location" }
+        if trimmed.caseInsensitiveCompare("Route") == .orderedSame { return trimmed }
+        if trimmed.lowercased().contains("hotel") { return trimmed }
+        return "\(trimmed) hotel"
     }
 
     init(route: RouteFeature, kind: Kind, name: String) {
@@ -184,6 +223,14 @@ class RouteEndpointAnnotationView: MKAnnotationView {
         self.layer.borderColor = UIColor.white.cgColor
         self.centerOffset = .zero
         self.canShowCallout = false
+        self.isUserInteractionEnabled = false
+        if let endpoint = annotation as? RouteEndpointFeature {
+            isAccessibilityElement = true
+            accessibilityLabel = endpoint.announcement
+            accessibilityHint = endpoint.kind == .departure
+                ? "Starting point of the route"
+                : "End point of the route"
+        }
     }
 }
 

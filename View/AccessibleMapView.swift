@@ -18,22 +18,27 @@ protocol AccessibleMapTouchDelegate: AnyObject {
 
 class AccessibleMapView: MKMapView {
 
-    var onBackGesture: (() -> Void)?
+    /// Two-finger swipe right in VoiceOver — only enable on screens where that should go back one level.
+    var onAccessibilityScrollBack: (() -> Void)?
+    /// Escape (two-finger Z) in VoiceOver.
+    var onAccessibilityEscape: (() -> Void)?
     weak var touchDelegate: AccessibleMapTouchDelegate?
 
     private var activeTouch: UITouch?
     private var touchStartPoint: CGPoint = .zero
     private var touchStartTime: TimeInterval = 0
     private var isDragging = false
+    private var didPostVoiceOverFocus = false
 
     private var pendingSingleTapWorkItem: DispatchWorkItem?
     private var lastTapTime: TimeInterval = 0
     private var lastTapPoint: CGPoint = .zero
 
     private let dragThreshold: CGFloat = 8
-    private let tapMaxDuration: TimeInterval = 0.4
-    private let doubleTapMaxInterval: TimeInterval = 0.35
-    private let doubleTapMaxDistance: CGFloat = 44
+    private let tapMaxDisplacement: CGFloat = 28
+    private let tapMaxDuration: TimeInterval = 0.45
+    private let doubleTapMaxInterval: TimeInterval = 0.45
+    private let doubleTapMaxDistance: CGFloat = 48
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -53,9 +58,12 @@ class AccessibleMapView: MKMapView {
 
     override func didMoveToWindow() {
         super.didMoveToWindow()
-        guard window != nil, UIAccessibility.isVoiceOverRunning else { return }
+        guard window != nil,
+              UIAccessibility.isVoiceOverRunning,
+              !didPostVoiceOverFocus else { return }
+        didPostVoiceOverFocus = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
-            guard let self = self else { return }
+            guard let self = self, self.window != nil else { return }
             UIAccessibility.post(notification: .layoutChanged, argument: self)
         }
     }
@@ -67,6 +75,7 @@ class AccessibleMapView: MKMapView {
         accessibilityTraits = [.allowsDirectInteraction]
         accessibilityLabel = label
         accessibilityHint = hint
+        accessibilityViewIsModal = false
 
         if #available(iOS 17.0, *) {
             // Pass touches straight to the map without requiring a two-finger
@@ -100,18 +109,17 @@ class AccessibleMapView: MKMapView {
     }
 
     override func accessibilityScroll(_ direction: UIAccessibilityScrollDirection) -> Bool {
-        if direction == .right {
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 0.8)
-            UIAccessibility.post(notification: .announcement, argument: "Going back")
-            onBackGesture?()
-            return true
-        }
-        return super.accessibilityScroll(direction)
+        guard direction == .right, let action = onAccessibilityScrollBack else { return false }
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 0.8)
+        UIAccessibility.post(notification: .announcement, argument: "Going back")
+        action()
+        return true
     }
 
     override func accessibilityPerformEscape() -> Bool {
+        guard let action = onAccessibilityEscape else { return false }
         UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 0.8)
-        onBackGesture?()
+        action()
         return true
     }
 
@@ -162,10 +170,11 @@ class AccessibleMapView: MKMapView {
 
         let point = touch.location(in: self)
         let duration = CACurrentMediaTime() - touchStartTime
+        let displacement = hypot(point.x - touchStartPoint.x, point.y - touchStartPoint.y)
 
         touchDelegate?.accessibleMapView(self, touchEndedAt: point)
 
-        if !isDragging && duration < tapMaxDuration {
+        if displacement < tapMaxDisplacement && duration < tapMaxDuration {
             let now = CACurrentMediaTime()
             let isDoubleTap = (now - lastTapTime) < doubleTapMaxInterval
                 && hypot(point.x - lastTapPoint.x, point.y - lastTapPoint.y) < doubleTapMaxDistance

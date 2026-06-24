@@ -7,7 +7,7 @@ extension HapticService {
     // MARK: - Route Vibration Pattern
     
     /// Route vibration: rhythmic pulsing (distinct from corridor's steady continuous hum).
-    /// Streets = smooth continuous at 50% intensity; route = assertive 0.2s pulse cycle at 100%.
+    /// Streets = steady continuous ~78%; route = rhythmic pulse at 100%.
     func startRouteVibration() {
         guard let engine = hapticEngine else {
             print("No haptic engine for route vibration")

@@ -56,7 +56,7 @@ enum HapticPatternType: Int, CaseIterable, Identifiable {
 
     var shortName: String {
         switch self {
-        case .streetContinuous: return "Steady 50%"
+        case .streetContinuous: return "Steady 78%"
         case .routeRhythmic: return "Fast pulse"
         case .intersectionSlowPulse: return "Slow + ding"
         case .landmarkFastPulse: return "Quick tick"

@@ -120,8 +120,8 @@ class CustomHapticEngine: ObservableObject {
         case .streetContinuous:
             return try CHHapticPattern(events: [
                 CHHapticEvent(eventType: .hapticContinuous, parameters: [
-                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.5),
-                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
+                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.78),
+                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.78)
                 ], relativeTime: 0, duration: loopCount == 1 ? 1.5 * durationScale : 100.0)
             ], parameters: [])
 

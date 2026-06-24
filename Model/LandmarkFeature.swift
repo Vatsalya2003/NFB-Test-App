@@ -111,6 +111,7 @@ class LandmarkAnnotationView: MKAnnotationView {
         self.layer.borderWidth = PhysicalDimensions.mmToPoints(MapLandmarkStyle.borderWidthMM)
         self.layer.borderColor = UIColor.white.cgColor
         self.canShowCallout = false
+        self.isUserInteractionEnabled = false
 
         tagLabel.textColor = .white
         tagLabel.textAlignment = .center

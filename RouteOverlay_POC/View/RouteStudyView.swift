@@ -5,12 +5,16 @@
 import SwiftUI
 import MapKit
 
+private struct IntersectionZoomSelection: Identifiable, Hashable {
+    let id: String
+}
+
 struct RouteStudyView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var mapFeatures: [MapFeature] = []
     @State private var routes: [RouteFeature] = []
     @State private var isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
-    @State private var selectedIntersection: IntersectionFeature?
+    @State private var intersectionZoomSelection: IntersectionZoomSelection?
 
     let routeFile: String
     let baseMapFile: String
@@ -21,6 +25,9 @@ struct RouteStudyView: View {
         self.title = title
         self.baseMapFile = "testMap_Condition1"
         self.routeFile = routeFile
+        let mirror = MapOrientation.shouldMirrorMap(forRouteFile: routeFile)
+        _mapFeatures = State(initialValue: MapDataLoader.loadMapFeatures(from: "testMap_Condition1", mirror180: mirror))
+        _routes = State(initialValue: RouteMapDataLoader.loadRouteFeatures(from: routeFile, mirror180: mirror))
     }
 
     var body: some View {
@@ -28,16 +35,24 @@ struct RouteStudyView: View {
             features: mapFeatures,
             routes: routes,
             isInteractionEnabled: true,
+            zoomableIntersectionIDs: routeIntersectionIDs,
+            rotateMap180: false,
             onThreeFingerSwipe: {
                 performBackNavigation()
             },
             onIntersectionDoubleTap: { intersection in
-                selectedIntersection = intersection
+                intersectionZoomSelection = IntersectionZoomSelection(id: intersection.id)
             }
         )
         .ignoresSafeArea(.container)
         .navigationBarTitle(title, displayMode: .inline)
         .navigationBarBackButtonHidden(false)
+        .navigationDestination(item: $intersectionZoomSelection) { selection in
+            IntersectionDetailView(
+                intersection: intersectionFeature(id: selection.id),
+                routeFile: routeFile
+            )
+        }
         .onAppear {
             setupView()
         }
@@ -48,29 +63,35 @@ struct RouteStudyView: View {
             performBackNavigation()
         }
         .disableInteractivePopGesture()
-        .background(
-            NavigationLink(
-                destination: selectedIntersection.map { IntersectionDetailView(intersection: $0) },
-                isActive: Binding(
-                    get: { selectedIntersection != nil },
-                    set: { if !$0 { selectedIntersection = nil } }
-                ),
-                label: { EmptyView() }
-            )
-        )
+    }
+
+    private func intersectionFeature(id: String) -> IntersectionFeature {
+        mapFeatures.compactMap { $0 as? IntersectionFeature }.first { $0.id == id }!
+    }
+
+    private var routeIntersectionIDs: Set<String> {
+        Set(routes.flatMap { $0.waypoints })
     }
 
     private func setupView() {
         FeedbackManager.shared.presentationMode = .naturalLanguage
 
-        mapFeatures = MapDataLoader.loadMapFeatures(from: baseMapFile)
-        routes = RouteMapDataLoader.loadRouteFeatures(from: routeFile)
+        let mirror = MapOrientation.shouldMirrorMap(forRouteFile: routeFile)
+        if mapFeatures.isEmpty {
+            mapFeatures = MapDataLoader.loadMapFeatures(from: baseMapFile, mirror180: mirror)
+        }
+        if routes.isEmpty {
+            routes = RouteMapDataLoader.loadRouteFeatures(from: routeFile, mirror180: mirror)
+        }
 
         print("Loaded \(mapFeatures.count) map features and \(routes.count) route(s)")
+        if let route = routes.first {
+            print("Route waypoints: \(route.waypoints)")
+        }
 
         if UIAccessibility.isVoiceOverRunning {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                let message = "Navigation map. Touch and drag the map to feel streets and hear names. Double tap an intersection to zoom in."
+                let message = "Navigation map. Turn on Direct Touch in VoiceOver, then drag to explore. Double tap a route intersection to zoom in. Use the back button to leave this screen."
                 UIAccessibility.post(notification: .screenChanged, argument: message)
             }
         }

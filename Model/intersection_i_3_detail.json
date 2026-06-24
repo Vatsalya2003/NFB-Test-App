@@ -297,27 +297,6 @@
       }
     },
     {
-      "id": "l2_cw_south",
-      "type": "crosswalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            440,
-            560
-          ],
-          [
-            560,
-            560
-          ]
-        ]
-      },
-      "properties": {
-        "level": 2,
-        "name": "Crosswalk south"
-      }
-    },
-    {
       "id": "l2_cw_west",
       "type": "crosswalk",
       "geometry": {

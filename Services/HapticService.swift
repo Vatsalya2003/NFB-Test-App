@@ -33,9 +33,9 @@ class HapticService {
     private let defaultIntensity: Float = 1.0         // Maximum intensity (for intersections/landmarks)
     private let defaultSharpness: Float = 0.5         // Medium sharpness
     
-    // Corridor intensity (REDUCED to create contrast with route overlay)
-    private let corridorIntensity: Float = 0.5        // 50% intensity for corridors
-    private let corridorSharpness: Float = 0.5        // Lower sharpness for smooth feel
+    // Corridor / street — steady continuous (stronger than before, still below route pulse peaks)
+    private let corridorIntensity: Float = 0.78
+    private let corridorSharpness: Float = 0.78
     
     // Landmark pulse timing (faster, snappier - 2x faster than intersections)
     private let landmarkPulseInterval: TimeInterval = 0.12   // 0.12s between pulses (vs 0.25s)
@@ -160,16 +160,15 @@ class HapticService {
                 try hapticEngine?.start()
             }
             
-            // Create continuous haptic pattern with REDUCED intensity for corridors
-            // This creates contrast with route overlay (which uses 100% intensity)
+            // Steady continuous hum — distinct from route's rhythmic pulse at full intensity
             let intensity = CHHapticEventParameter(
                 parameterID: .hapticIntensity,
-                value: corridorIntensity  // 50% intensity for corridors
+                value: corridorIntensity
             )
             
             let sharpness = CHHapticEventParameter(
                 parameterID: .hapticSharpness,
-                value: corridorSharpness  // Lower sharpness for smooth feel
+                value: corridorSharpness
             )
             
             // Create a continuous event with long duration

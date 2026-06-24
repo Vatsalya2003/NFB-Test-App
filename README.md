@@ -94,7 +94,7 @@ See **[docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md)** for detailed document
 | Start / end | Yellow dot | 4 mm |
 | Sidewalks (Level 2) | Gray `#9e9e9e` | 4 mm |
 | Crosswalks (Level 2) | White dashed | 2 mm |
-| Roads (Level 2) | Blue `#023e8a` | 8 mm |
+| Roads (Level 2) | Blue `#023e8a` | 12 mm |
 
 ---
 

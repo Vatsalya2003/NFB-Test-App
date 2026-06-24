@@ -1,5 +1,5 @@
 // IntersectionDetailMapView.swift
-// Level 2 zoomed intersection view — wider roads (8mm), sidewalks, crosswalks, route on top.
+// Level 2 zoomed intersection view — 12 mm roads, 4 mm sidewalks, crosswalks, route on top.
 // Based on RouteMapView but with intersection-specific viewport and rendering.
 
 import SwiftUI
@@ -8,15 +8,18 @@ import MapKit
 struct IntersectionDetailMapView: UIViewRepresentable {
     let features: [MapFeature]
     let routes: [RouteFeature]
+    var intersectionName: String = "Intersection"
+    var rotateMap180: Bool = false
     var onBackGesture: (() -> Void)?
 
     func makeUIView(context: Context) -> MKMapView {
         let mapView = AccessibleMapView()
-        mapView.onBackGesture = onBackGesture
+        mapView.onAccessibilityScrollBack = onBackGesture
+        mapView.onAccessibilityEscape = onBackGesture
         mapView.touchDelegate = context.coordinator
         mapView.configureAccessibility(
             label: "Intersection detail map",
-            hint: "Touch and drag to follow the route. Double tap the yellow end dot to return to route overview, or double tap anywhere to go back."
+            hint: "Touch and drag to follow the route. At the yellow end dot you will hear end of route. Double tap the end dot to return to map overview."
         )
         mapView.layoutMargins = .zero
 
@@ -49,17 +52,21 @@ struct IntersectionDetailMapView: UIViewRepresentable {
         mapView.addOverlay(BlankTileOverlay(), level: .aboveLabels)
         addGestures(to: mapView, coordinator: context.coordinator)
 
-        MapIntersectionViewport.apply(to: mapView)
+        MapIntersectionViewport.apply(to: mapView, edgePadding: MapIntersectionViewport.detailEdgePadding)
         DispatchQueue.main.async {
-            MapIntersectionViewport.apply(to: mapView)
+            MapIntersectionViewport.apply(to: mapView, edgePadding: MapIntersectionViewport.detailEdgePadding)
         }
 
         return mapView
     }
 
     func updateUIView(_ mapView: MKMapView, context: Context) {
+        context.coordinator.parent = self
+        MapOrientation.applyRotation(rotated180: rotateMap180, to: mapView)
+
         if let accessibleMap = mapView as? AccessibleMapView {
-            accessibleMap.onBackGesture = onBackGesture
+            accessibleMap.onAccessibilityScrollBack = onBackGesture
+            accessibleMap.onAccessibilityEscape = onBackGesture
             accessibleMap.touchDelegate = context.coordinator
         }
 
@@ -90,7 +97,10 @@ struct IntersectionDetailMapView: UIViewRepresentable {
         context.coordinator.currentRouteEndpoints = routeEndpoints
         routeEndpoints.forEach { $0.addToMap(mapView) }
 
-        MapIntersectionViewport.apply(to: mapView)
+        MapIntersectionViewport.apply(to: mapView, edgePadding: MapIntersectionViewport.detailEdgePadding)
+        DispatchQueue.main.async {
+            MapIntersectionViewport.apply(to: mapView, edgePadding: MapIntersectionViewport.detailEdgePadding)
+        }
     }
 
     func makeCoordinator() -> IntersectionDetailCoordinator {
@@ -143,6 +153,10 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
         super.init()
     }
 
+    private func hitTestPoint(_ viewPoint: CGPoint, in mapView: MKMapView) -> CGPoint {
+        MapOrientation.hitTestPoint(from: viewPoint, in: mapView, rotated180: parent.rotateMap180)
+    }
+
     // MARK: MKMapViewDelegate
 
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
@@ -177,11 +191,11 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
             return renderer
         }
 
-        // Corridors — 8mm wide in Level 2
+        // Corridors — 12 mm wide in Level 2
         if let polyline = overlay as? MKPolyline {
             let renderer = MKPolylineRenderer(polyline: polyline)
             renderer.strokeColor = MapRoadStyle.blue
-            renderer.lineWidth = PhysicalDimensions.mmToPoints(8.0)
+            renderer.lineWidth = PhysicalDimensions.mmToPoints(MapIntersectionDetailStyle.roadLineWidthMM)
             renderer.lineCap = .round
             renderer.lineJoin = .round
             return renderer
@@ -214,8 +228,14 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
             view.annotation = annotation
             if endpoint.kind == .destination {
                 view.isAccessibilityElement = true
-                view.accessibilityLabel = "Route end"
-                view.accessibilityHint = "Double tap to return to route overview"
+                view.accessibilityLabel = RouteEndpointFeature.intersectionRouteEndAnnouncement
+                view.accessibilityHint = "Double tap to return to map overview"
+            } else if endpoint.kind == .departure {
+                view.isAccessibilityElement = true
+                view.accessibilityLabel = RouteEndpointFeature.intersectionDepartureAnnouncement(
+                    intersectionName: parent.intersectionName
+                )
+                view.accessibilityHint = "Starting point at this intersection"
             }
             return view
         }
@@ -233,17 +253,19 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
     @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
         guard gesture.state == .recognized else { return }
         guard let mapView = gesture.view as? MKMapView else { return }
-        performDoubleTap(at: gesture.location(in: mapView), in: mapView)
+        let point = hitTestPoint(gesture.location(in: mapView), in: mapView)
+        performDoubleTap(at: point, in: mapView)
     }
 
     @objc func handleSingleTap(_ gesture: UITapGestureRecognizer) {
         guard let mapView = gesture.view as? MKMapView else { return }
-        performSingleTap(at: gesture.location(in: mapView), in: mapView)
+        let point = hitTestPoint(gesture.location(in: mapView), in: mapView)
+        performSingleTap(at: point, in: mapView)
     }
 
     @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
         guard let mapView = gesture.view as? MKMapView else { return }
-        let point = gesture.location(in: mapView)
+        let point = hitTestPoint(gesture.location(in: mapView), in: mapView)
         let now = CACurrentMediaTime()
 
         switch gesture.state {
@@ -256,7 +278,7 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
             }
         case .ended, .cancelled, .failed:
             if let endpoint = routeEndpoint(at: point, in: mapView), endpoint.kind == .destination {
-                FeedbackManager.shared.speak("End of route. Double tap to return to route overview.")
+                FeedbackManager.shared.speak(RouteEndpointFeature.intersectionRouteEndAnnouncement)
             }
             stopFeedback()
         default:
@@ -267,30 +289,31 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
     // MARK: AccessibleMapTouchDelegate (VoiceOver direct touch)
 
     func accessibleMapView(_ mapView: MKMapView, touchBeganAt point: CGPoint) {
-        startFeedback(at: point, in: mapView)
+        startFeedback(at: hitTestPoint(point, in: mapView), in: mapView)
     }
 
     func accessibleMapView(_ mapView: MKMapView, touchMovedTo point: CGPoint) {
         let now = CACurrentMediaTime()
         if now - lastUpdateTime > updateThreshold {
             lastUpdateTime = now
-            updateFeedback(at: point, in: mapView)
+            updateFeedback(at: hitTestPoint(point, in: mapView), in: mapView)
         }
     }
 
     func accessibleMapView(_ mapView: MKMapView, touchEndedAt point: CGPoint) {
-        if let endpoint = routeEndpoint(at: point, in: mapView), endpoint.kind == .destination {
-            FeedbackManager.shared.speak("End of route. Double tap to return to route overview.")
+        let mapPoint = hitTestPoint(point, in: mapView)
+        if let endpoint = routeEndpoint(at: mapPoint, in: mapView), endpoint.kind == .destination {
+            FeedbackManager.shared.speak(RouteEndpointFeature.intersectionRouteEndAnnouncement)
         }
         stopFeedback()
     }
 
     func accessibleMapView(_ mapView: MKMapView, singleTappedAt point: CGPoint) {
-        performSingleTap(at: point, in: mapView)
+        performSingleTap(at: hitTestPoint(point, in: mapView), in: mapView)
     }
 
     func accessibleMapView(_ mapView: MKMapView, doubleTappedAt point: CGPoint) {
-        performDoubleTap(at: point, in: mapView)
+        performDoubleTap(at: hitTestPoint(point, in: mapView), in: mapView)
     }
 
     private func performSingleTap(at point: CGPoint, in mapView: MKMapView) {
@@ -298,6 +321,18 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
 
         if let sidewalk = topFeature(at: point, in: mapView) as? SidewalkFeature {
             FeedbackManager.shared.speak(sidewalk.announcement)
+        } else if let endpoint = topFeature(at: point, in: mapView) as? RouteEndpointFeature,
+                  endpoint.kind == .departure {
+            FeedbackManager.shared.speak(
+                RouteEndpointFeature.intersectionDepartureAnnouncement(intersectionName: parent.intersectionName)
+            )
+        } else if let endpoint = topFeature(at: point, in: mapView) as? RouteEndpointFeature,
+                  endpoint.kind == .destination {
+            FeedbackManager.shared.speak(RouteEndpointFeature.intersectionRouteEndAnnouncement)
+        } else if let intersection = topFeature(at: point, in: mapView) as? IntersectionFeature {
+            FeedbackManager.shared.speak(intersection.announcement)
+        } else if let route = topFeature(at: point, in: mapView) as? RouteFeature {
+            FeedbackManager.shared.speak(route.explorationAnnouncement)
         } else if let feature = topFeature(at: point, in: mapView),
                   let name = feature.properties["name"] as? String {
             FeedbackManager.shared.speak(name)
@@ -308,7 +343,7 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
         FeedbackManager.shared.playPulseHaptic()
 
         if let endpoint = routeEndpoint(at: point, in: mapView), endpoint.kind == .destination {
-            FeedbackManager.shared.speak("Returning to route overview")
+            FeedbackManager.shared.speak("Returning to map overview")
             parent.onBackGesture?()
             return
         }
@@ -351,28 +386,26 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
         case let endpoint as RouteEndpointFeature:
             FeedbackManager.shared.startLandmarkPulsing()
             if endpoint.kind == .destination {
-                FeedbackManager.shared.speak("\(endpoint.announcement). Double tap to return to route overview.")
+                FeedbackManager.shared.speak(RouteEndpointFeature.intersectionRouteEndAnnouncement)
+            } else if endpoint.kind == .departure {
+                FeedbackManager.shared.speak(
+                    RouteEndpointFeature.intersectionDepartureAnnouncement(intersectionName: parent.intersectionName)
+                )
             } else {
                 FeedbackManager.shared.speak(endpoint.announcement)
             }
         case let landmark as LandmarkFeature:
             FeedbackManager.shared.startLandmarkPulsing()
             FeedbackManager.shared.speak(landmark.announcement)
-        case is IntersectionFeature:
+        case let intersection as IntersectionFeature:
             FeedbackManager.shared.startContinuousPulsing()
-            if let name = feature.properties["name"] as? String {
-                FeedbackManager.shared.speak(name)
-            }
+            FeedbackManager.shared.speak(intersection.announcement)
         case is CrosswalkFeature:
             FeedbackManager.shared.startContinuousPulsing()
             FeedbackManager.shared.speak("Crosswalk")
         case let route as RouteFeature:
             FeedbackManager.shared.startRoutePulsing()
-            if let action = route.properties["action"] as? String, !action.isEmpty {
-                FeedbackManager.shared.speak(action)
-            } else {
-                FeedbackManager.shared.speak("Route: \(route.routeName)")
-            }
+            FeedbackManager.shared.speak(route.explorationAnnouncement)
         case let sidewalk as SidewalkFeature:
             FeedbackManager.shared.startContinuousSound()
             FeedbackManager.shared.speak(sidewalk.announcement)
@@ -459,7 +492,7 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
     }
 
     private func corridor(at point: CGPoint, in mapView: MKMapView) -> CorridorFeature? {
-        let threshold = PhysicalDimensions.mmToPoints(8.0) / 2
+        let threshold = PhysicalDimensions.mmToPoints(MapIntersectionDetailStyle.roadLineWidthMM) / 2
         for feature in currentFeatures where feature.featureType == "corridor" {
             guard let corridor = feature as? CorridorFeature else { continue }
             for i in 0..<(corridor.coordinates.count - 1) {

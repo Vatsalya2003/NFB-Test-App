@@ -294,27 +294,6 @@
       }
     },
     {
-      "id": "l2_cw_north",
-      "type": "crosswalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            440,
-            440
-          ],
-          [
-            560,
-            440
-          ]
-        ]
-      },
-      "properties": {
-        "level": 2,
-        "name": "Crosswalk on Brazos Street"
-      }
-    },
-    {
       "id": "l2_cw_e1st",
       "type": "crosswalk",
       "geometry": {

@@ -16,6 +16,11 @@ enum MapIntersectionStyle {
     static let sideMM: CGFloat = 5.0
 }
 
+/// Level 2 intersection detail — wider roads, sidewalks beside them.
+enum MapIntersectionDetailStyle {
+    static let roadLineWidthMM: CGFloat = 12.0
+}
+
 enum MapRouteStyle {
     /// Route line (#48cae4).
     static let color = UIColor(red: 0x48 / 255.0, green: 0xca / 255.0, blue: 0xe4 / 255.0, alpha: 1.0)
@@ -50,6 +55,40 @@ enum MapLandmarkStyle {
     }
 }
 
+/// Map orientation — Marriott → JW uses a data mirror (not UIView rotation; MapKit breaks when rotated).
+enum MapOrientation {
+  static let marriottToJWRouteFile = "route_marriott_to_jwmarriott"
+  static let jwToMarriottRouteFile = "route_jwmarriott_to_marriott"
+  private static let designerPivot = 500.0
+
+  /// Never rotate the MKMapView — it hides/clips the route. Use `shouldMirrorMap` instead.
+  static func isRotated180(forRouteFile routeFile: String) -> Bool { false }
+
+  /// Flip map data 180° around grid center so departure sits toward the bottom (Marriott → JW).
+  static func shouldMirrorMap(forRouteFile routeFile: String) -> Bool {
+    routeFile == marriottToJWRouteFile
+  }
+
+  /// Level 2 intersection JSON routes are authored for Marriott → JW; reverse for the return trip.
+  static func shouldReverseIntersectionRoute(forRouteFile routeFile: String) -> Bool {
+    routeFile == jwToMarriottRouteFile
+  }
+
+  /// Mirror a designer-grid point (0–1000) around the intersection center before stretch.
+  static func mirrorDesignerCoordinate(_ coord: [Double]) -> [Double] {
+    guard coord.count >= 2 else { return coord }
+    return [2 * designerPivot - coord[0], 2 * designerPivot - coord[1]]
+  }
+
+  static func applyRotation(rotated180: Bool, to mapView: MKMapView) {
+    mapView.transform = .identity
+  }
+
+  static func hitTestPoint(from viewPoint: CGPoint, in mapView: MKMapView, rotated180: Bool) -> CGPoint {
+    viewPoint
+  }
+}
+
 enum MapSidewalkStyle {
     /// Sidewalk gray (#9e9e9e).
     static let color = UIColor(red: 0x9e / 255.0, green: 0x9e / 255.0, blue: 0x9e / 255.0, alpha: 1.0)
@@ -66,8 +105,14 @@ enum MapCrosswalkStyle {
 /// Level 2 intersection layout — sidewalk lines in designer JSON use 440/560 around center 500.
 enum MapIntersectionLayout {
     static let center = 500.0
-    /// Designer offset for vertical sidewalks (X axis, not stretched). Tune this value.
-    static let sidewalkOffsetX = 120.0
+    /// Extra distance from road edge, in physical mm (added to baseline offset below).
+    static let sidewalkExtraSetbackMM: CGFloat = 2.0
+    /// Baseline designer offset for vertical sidewalks (X axis, not stretched).
+    private static let sidewalkOffsetBaseline = 132.0
+    /// Level 2 viewport: designer JSON units per mm on screen.
+    private static let designerUnitsPerMM = 15.5
+    /// Vertical sidewalk offset — baseline + extra mm setback.
+    static let sidewalkOffsetX = sidewalkOffsetBaseline + Double(sidewalkExtraSetbackMM) * designerUnitsPerMM
     /// Designer offset for horizontal sidewalks — smaller because Y is stretched 2.6× in MapDataLoader.
     static var sidewalkOffsetY: Double { sidewalkOffsetX / yStretchFactor }
     /// Keep in sync with MapDataLoader.stretchFactor.
@@ -127,7 +172,9 @@ enum MapFixedViewport {
 }
 
 enum MapIntersectionViewport {
+    /// Fixed zoom for Level 2 — all intersection JSONs share the same 100–900 designer grid.
     static let edgePadding = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+    static let detailEdgePadding = UIEdgeInsets(top: 72, left: 20, bottom: 40, right: 20)
 
     static func apply(to mapView: MKMapView, edgePadding: UIEdgeInsets? = nil) {
         let southwest = MKMapPoint(CLLocationCoordinate2D(latitude: -0.003, longitude: 0.0005))
@@ -146,6 +193,13 @@ enum MapIntersectionViewport {
     }
 }
 
+enum MapFitMode {
+    /// Zoom in and crop — fills the screen but can clip content at edges.
+    case cover
+    /// Zoom out to show everything — centers content with even margins (preferred).
+    case contain
+}
+
 enum MapVisibleRectHelper {
     static func corridorFeatures(from features: [MapFeature]) -> [MapFeature] {
         features.filter { $0.featureType == "corridor" }
@@ -154,24 +208,54 @@ enum MapVisibleRectHelper {
     static func boundingMapRect(for features: [MapFeature], routes: [RouteFeature] = []) -> MKMapRect {
         var mapRect = MKMapRect.null
 
-        for feature in corridorFeatures(from: features) {
-            if let corridor = feature as? CorridorFeature {
-                mapRect = mapRect.union(corridor.boundingMapRect)
+        func unionCoordinate(_ coordinate: CLLocationCoordinate2D, padding: Double) {
+            let point = MKMapPoint(coordinate)
+            mapRect = mapRect.union(MKMapRect(
+                x: point.x - padding,
+                y: point.y - padding,
+                width: padding * 2,
+                height: padding * 2
+            ))
+        }
+
+        for feature in features {
+            if let overlay = feature as? MKOverlay {
+                mapRect = mapRect.union(overlay.boundingMapRect)
+            } else if let intersection = feature as? IntersectionFeature {
+                unionCoordinate(intersection.coordinate, padding: 600)
+            } else if let landmark = feature as? LandmarkFeature {
+                let pad = Double(PhysicalDimensions.mmToPoints(MapLandmarkStyle.boxWidthMM * 2))
+                unionCoordinate(landmark.coordinate, padding: max(pad, 800))
             }
         }
 
         for route in routes {
             mapRect = mapRect.union(route.boundingMapRect)
+            for endpoint in RouteEndpointFeature.endpoints(for: route) {
+                unionCoordinate(endpoint.coordinate, padding: 900)
+            }
         }
 
         return mapRect
+    }
+
+    /// Fit the map to all drawn content — contain mode keeps everything on screen.
+    static func fitContent(
+        _ mapView: MKMapView,
+        features: [MapFeature],
+        routes: [RouteFeature] = [],
+        edgePadding: UIEdgeInsets = UIEdgeInsets(top: 72, left: 28, bottom: 40, right: 28),
+        mode: MapFitMode = .contain
+    ) {
+        fitMapView(mapView, features: features, routes: routes, edgePadding: edgePadding, mode: mode)
     }
 
     static func fitMapView(
         _ mapView: MKMapView,
         features: [MapFeature],
         routes: [RouteFeature] = [],
-        edgePadding: UIEdgeInsets = .zero
+        edgePadding: UIEdgeInsets = .zero,
+        mode: MapFitMode = .contain
     ) {
         var mapRect = boundingMapRect(for: features, routes: routes)
         guard !mapRect.isNull else { return }
@@ -181,28 +265,52 @@ enum MapVisibleRectHelper {
         let effectiveHeight = viewSize.height - edgePadding.top - edgePadding.bottom
         guard effectiveWidth > 0, effectiveHeight > 0 else { return }
 
-        // Cover mode — zoom in so the grid fills the drawable area (no letterboxing)
         let contentAspect = mapRect.width / mapRect.height
         let viewAspect = Double(effectiveWidth / effectiveHeight)
 
-        if contentAspect > viewAspect {
-            let newWidth = mapRect.height * viewAspect
-            let dx = (mapRect.width - newWidth) / 2
-            mapRect = MKMapRect(
-                x: mapRect.origin.x + dx,
-                y: mapRect.origin.y,
-                width: newWidth,
-                height: mapRect.height
-            )
-        } else {
-            let newHeight = mapRect.width / viewAspect
-            let dy = (mapRect.height - newHeight) / 2
-            mapRect = MKMapRect(
-                x: mapRect.origin.x,
-                y: mapRect.origin.y + dy,
-                width: mapRect.width,
-                height: newHeight
-            )
+        switch mode {
+        case .cover:
+            // Fill the drawable area — may crop top/bottom or sides.
+            if contentAspect > viewAspect {
+                let newWidth = mapRect.height * viewAspect
+                let dx = (mapRect.width - newWidth) / 2
+                mapRect = MKMapRect(
+                    x: mapRect.origin.x + dx,
+                    y: mapRect.origin.y,
+                    width: newWidth,
+                    height: mapRect.height
+                )
+            } else {
+                let newHeight = mapRect.width / viewAspect
+                let dy = (mapRect.height - newHeight) / 2
+                mapRect = MKMapRect(
+                    x: mapRect.origin.x,
+                    y: mapRect.origin.y + dy,
+                    width: mapRect.width,
+                    height: newHeight
+                )
+            }
+        case .contain:
+            // Show all content — expand visible rect so nothing is clipped.
+            if contentAspect > viewAspect {
+                let newHeight = mapRect.width / viewAspect
+                let dy = (newHeight - mapRect.height) / 2
+                mapRect = MKMapRect(
+                    x: mapRect.origin.x,
+                    y: mapRect.origin.y - dy,
+                    width: mapRect.width,
+                    height: newHeight
+                )
+            } else {
+                let newWidth = mapRect.height * viewAspect
+                let dx = (newWidth - mapRect.width) / 2
+                mapRect = MKMapRect(
+                    x: mapRect.origin.x - dx,
+                    y: mapRect.origin.y,
+                    width: newWidth,
+                    height: mapRect.height
+                )
+            }
         }
 
         mapView.setVisibleMapRect(mapRect, edgePadding: edgePadding, animated: false)

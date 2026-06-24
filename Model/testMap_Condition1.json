@@ -158,8 +158,8 @@
       "properties": {
         "name": "JW Marriott Austin",
         "tag": "JW",
-        "side": "right",
-        "announcement": "JW Marriott on your right",
+        "side": "left",
+        "announcement": "JW Marriott on your left",
         "level": 1
       }
     },
@@ -170,8 +170,8 @@
       "properties": {
         "name": "Austin Marriott Downtown",
         "tag": "AM",
-        "side": "right",
-        "announcement": "Austin Marriott Downtown on your right",
+        "side": "left",
+        "announcement": "Austin Marriott Downtown on your left",
         "level": 1
       }
     }

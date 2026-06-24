@@ -14,7 +14,7 @@ class MapDataLoader {
     // Higher values = even taller map
     static var stretchFactor: Double = 2.6
     
-    static func loadMapFeatures(from filename: String) -> [MapFeature] {
+    static func loadMapFeatures(from filename: String, mirror180: Bool = false) -> [MapFeature] {
         guard let url = Bundle.main.url(forResource: filename, withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -36,30 +36,32 @@ class MapDataLoader {
             switch type {
             case "corridor":
                 if let coords = coordinates as? [[Double]] {
-                    // Stretch corridor coordinates vertically
-                    let stretchedCoords = stretchCoordinates(coords, stretchFactor: stretchFactor)
+                    let mirroredCoords = mirror180 ? coords.map { MapOrientation.mirrorDesignerCoordinate($0) } : coords
+                    let stretchedCoords = stretchCoordinates(mirroredCoords, stretchFactor: stretchFactor)
                     let corridor = CorridorFeature(id: id, coordinates: stretchedCoords, properties: properties)
                     mapFeatures.append(corridor)
                 }
                 
             case "landmark":
                 if let coords = coordinates as? [Double] {
-                    // Stretch landmark coordinates vertically
-                    let stretchedCoords = stretchCoordinate(coords, stretchFactor: stretchFactor)
+                    let mirroredCoords = mirror180 ? MapOrientation.mirrorDesignerCoordinate(coords) : coords
+                    let stretchedCoords = stretchCoordinate(mirroredCoords, stretchFactor: stretchFactor)
                     let landmark = LandmarkFeature(id: id, coordinates: stretchedCoords, properties: properties)
                     mapFeatures.append(landmark)
                 }
                 
             case "intersection":
                 if let coords = coordinates as? [Double] {
-                    let stretchedCoords = stretchCoordinate(coords, stretchFactor: stretchFactor)
+                    let mirroredCoords = mirror180 ? MapOrientation.mirrorDesignerCoordinate(coords) : coords
+                    let stretchedCoords = stretchCoordinate(mirroredCoords, stretchFactor: stretchFactor)
                     let intersection = IntersectionFeature(id: id, coordinates: stretchedCoords, properties: properties)
                     mapFeatures.append(intersection)
                 }
 
             case "sidewalk":
                 if let coords = coordinates as? [[Double]] {
-                    let layoutCoords = coords.map { MapIntersectionLayout.remapCoordinate($0) }
+                    let mirroredCoords = mirror180 ? coords.map { MapOrientation.mirrorDesignerCoordinate($0) } : coords
+                    let layoutCoords = mirroredCoords.map { MapIntersectionLayout.remapCoordinate($0) }
                     let stretchedCoords = stretchCoordinates(layoutCoords, stretchFactor: stretchFactor)
                     let sidewalk = SidewalkFeature(id: id, coordinates: stretchedCoords, properties: properties)
                     mapFeatures.append(sidewalk)
@@ -67,7 +69,8 @@ class MapDataLoader {
 
             case "crosswalk":
                 if let coords = coordinates as? [[Double]] {
-                    let layoutCoords = coords.map { MapIntersectionLayout.remapCoordinate($0) }
+                    let mirroredCoords = mirror180 ? coords.map { MapOrientation.mirrorDesignerCoordinate($0) } : coords
+                    let layoutCoords = mirroredCoords.map { MapIntersectionLayout.remapCoordinate($0) }
                     let stretchedCoords = stretchCoordinates(layoutCoords, stretchFactor: stretchFactor)
                     let crosswalk = CrosswalkFeature(id: id, coordinates: stretchedCoords, properties: properties)
                     mapFeatures.append(crosswalk)
