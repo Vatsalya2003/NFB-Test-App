@@ -13,8 +13,10 @@ struct RouteStudyView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var mapFeatures: [MapFeature] = []
     @State private var routes: [RouteFeature] = []
-    @State private var isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
+    @State private var hasAnnouncedScreenIntro = false
     @State private var intersectionZoomSelection: IntersectionZoomSelection?
+    /// Keeps the CSV session alive while intersection detail is on the navigation stack.
+    @State private var holdSessionForIntersection = false
 
     let routeFile: String
     let baseMapFile: String
@@ -26,7 +28,7 @@ struct RouteStudyView: View {
         self.baseMapFile = "testMap_Condition1"
         self.routeFile = routeFile
         let mirror = MapOrientation.shouldMirrorMap(forRouteFile: routeFile)
-        _mapFeatures = State(initialValue: MapDataLoader.loadMapFeatures(from: "testMap_Condition1", mirror180: mirror))
+        _mapFeatures = State(initialValue: MapDataLoader.loadMapFeatures(from: "testMap_Condition1", mirror180: mirror, routeFile: routeFile))
         _routes = State(initialValue: RouteMapDataLoader.loadRouteFeatures(from: routeFile, mirror180: mirror))
     }
 
@@ -41,6 +43,7 @@ struct RouteStudyView: View {
                 performBackNavigation()
             },
             onIntersectionDoubleTap: { intersection in
+                holdSessionForIntersection = true
                 intersectionZoomSelection = IntersectionZoomSelection(id: intersection.id)
             }
         )
@@ -50,16 +53,27 @@ struct RouteStudyView: View {
         .navigationDestination(item: $intersectionZoomSelection) { selection in
             IntersectionDetailView(
                 intersection: intersectionFeature(id: selection.id),
-                routeFile: routeFile
+                routeFile: routeFile,
+                routeTitle: title
             )
         }
         .onAppear {
             setupView()
+            DataService.shared.startSession(routeTitle: title, routeFile: routeFile)
+        }
+        .onChange(of: intersectionZoomSelection) { _, newValue in
+            if newValue == nil {
+                holdSessionForIntersection = false
+            }
         }
         .onDisappear {
+            let leavingRoute = intersectionZoomSelection == nil && !holdSessionForIntersection
+            if leavingRoute {
+                DataService.shared.endSession()
+            }
             FeedbackManager.shared.stopAllFeedback()
         }
-        .accessibilityAction(named: "Escape") {
+        .accessibilityAction(.escape) {
             performBackNavigation()
         }
         .disableInteractivePopGesture()
@@ -78,7 +92,7 @@ struct RouteStudyView: View {
 
         let mirror = MapOrientation.shouldMirrorMap(forRouteFile: routeFile)
         if mapFeatures.isEmpty {
-            mapFeatures = MapDataLoader.loadMapFeatures(from: baseMapFile, mirror180: mirror)
+            mapFeatures = MapDataLoader.loadMapFeatures(from: baseMapFile, mirror180: mirror, routeFile: routeFile)
         }
         if routes.isEmpty {
             routes = RouteMapDataLoader.loadRouteFeatures(from: routeFile, mirror180: mirror)
@@ -89,16 +103,21 @@ struct RouteStudyView: View {
             print("Route waypoints: \(route.waypoints)")
         }
 
-        if UIAccessibility.isVoiceOverRunning {
+        if UIAccessibility.isVoiceOverRunning, !hasAnnouncedScreenIntro {
+            hasAnnouncedScreenIntro = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                let message = "Navigation map. Turn on Direct Touch in VoiceOver, then drag to explore. Double tap a route intersection to zoom in. Use the back button to leave this screen."
+                let message = "Navigation map. Turn on Direct Touch in VoiceOver, then drag to explore. Double tap a route intersection to open intersection view. Two-finger swipe right or Z gesture to go back."
                 UIAccessibility.post(notification: .screenChanged, argument: message)
             }
         }
     }
 
     private func performBackNavigation() {
+        DataService.shared.endSession()
         FeedbackManager.shared.stopAllFeedback()
+        if UIAccessibility.isVoiceOverRunning {
+            UIAccessibility.post(notification: .announcement, argument: "Leaving navigation map")
+        }
         presentationMode.wrappedValue.dismiss()
     }
 }

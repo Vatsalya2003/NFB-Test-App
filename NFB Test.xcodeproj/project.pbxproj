@@ -36,7 +36,6 @@
 		C4A2DE520000000000000011 /* route_marriott_to_jwmarriott.json in Resources */ = {isa = PBXBuildFile; fileRef = C4A2DE520000000000000010 /* route_marriott_to_jwmarriott.json */; };
 		C4A2DE520000000000000021 /* route_jwmarriott_to_marriott.json in Resources */ = {isa = PBXBuildFile; fileRef = C4A2DE520000000000000020 /* route_jwmarriott_to_marriott.json */; };
 		C4L2000100000000000000A1 /* AccessibleMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4L2000100000000000000A0 /* AccessibleMapView.swift */; };
-		C4POP0010000000000000A1 /* DisableInteractivePopGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4POP0010000000000000A0 /* DisableInteractivePopGesture.swift */; };
 		C4L2000100000000000000B1 /* IntersectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4L2000100000000000000B0 /* IntersectionDetailView.swift */; };
 		C4L2000100000000000000C1 /* IntersectionDetailMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4L2000100000000000000C0 /* IntersectionDetailMapView.swift */; };
 		C4L2000100000000000000D1 /* SidewalkFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4L2000100000000000000D0 /* SidewalkFeature.swift */; };
@@ -47,6 +46,11 @@
 		C4L20001000000000000F041 /* intersection_i_4_detail.json in Resources */ = {isa = PBXBuildFile; fileRef = C4L20001000000000000F040 /* intersection_i_4_detail.json */; };
 		C4L20001000000000000F051 /* intersection_i_5_detail.json in Resources */ = {isa = PBXBuildFile; fileRef = C4L20001000000000000F050 /* intersection_i_5_detail.json */; };
 		C4L20001000000000000F061 /* intersection_i_6_detail.json in Resources */ = {isa = PBXBuildFile; fileRef = C4L20001000000000000F060 /* intersection_i_6_detail.json */; };
+		C4POP0010000000000000A1 /* DisableInteractivePopGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4POP0010000000000000A0 /* DisableInteractivePopGesture.swift */; };
+		C4LOG001000000000000011 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4LOG001000000000000001 /* DataManager.swift */; };
+		C4LOG001000000000000012 /* MapTouchElementDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4LOG001000000000000002 /* MapTouchElementDetector.swift */; };
+		C4LOG001000000000000013 /* DataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4LOG001000000000000003 /* DataService.swift */; };
+		C4LOG001000000000000014 /* FilesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4LOG001000000000000004 /* FilesListView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -97,9 +101,7 @@
 		C4A2DE510000000000000002 /* MapDesignerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapDesignerView.swift; sourceTree = "<group>"; };
 		C4A2DE520000000000000010 /* route_marriott_to_jwmarriott.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = route_marriott_to_jwmarriott.json; sourceTree = "<group>"; };
 		C4A2DE520000000000000020 /* route_jwmarriott_to_marriott.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = route_jwmarriott_to_marriott.json; sourceTree = "<group>"; };
-		C4NFB0002FDB7000001453CD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C4L2000100000000000000A0 /* AccessibleMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibleMapView.swift; sourceTree = "<group>"; };
-		C4POP0010000000000000A0 /* DisableInteractivePopGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisableInteractivePopGesture.swift; sourceTree = "<group>"; };
 		C4L2000100000000000000B0 /* IntersectionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntersectionDetailView.swift; sourceTree = "<group>"; };
 		C4L2000100000000000000C0 /* IntersectionDetailMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntersectionDetailMapView.swift; sourceTree = "<group>"; };
 		C4L2000100000000000000D0 /* SidewalkFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidewalkFeature.swift; sourceTree = "<group>"; };
@@ -110,6 +112,12 @@
 		C4L20001000000000000F040 /* intersection_i_4_detail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intersection_i_4_detail.json; sourceTree = "<group>"; };
 		C4L20001000000000000F050 /* intersection_i_5_detail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intersection_i_5_detail.json; sourceTree = "<group>"; };
 		C4L20001000000000000F060 /* intersection_i_6_detail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intersection_i_6_detail.json; sourceTree = "<group>"; };
+		C4NFB0002FDB7000001453CD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C4POP0010000000000000A0 /* DisableInteractivePopGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisableInteractivePopGesture.swift; sourceTree = "<group>"; };
+		C4LOG001000000000000001 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
+		C4LOG001000000000000002 /* MapTouchElementDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapTouchElementDetector.swift; sourceTree = "<group>"; };
+		C4LOG001000000000000003 /* DataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataService.swift; sourceTree = "<group>"; };
+		C4LOG001000000000000004 /* FilesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesListView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -160,6 +168,7 @@
 				C49CDC9B2F15525F0010FDE4 /* PhysicalDimensions.swift */,
 				C49CDCAB2F15525F0010FDE4 /* RouteOverlay_POC */,
 				C49CDCB02F15525F0010FDE4 /* Services */,
+				C4LOG001000000000000010 /* Utilities */,
 				C49CDCB12F15525F0010FDE4 /* SpeechSynthesizerManager.swift */,
 				C49CDCBA2F15525F0010FDE4 /* View */,
 				C49CDCBC2F15525F0010FDE4 /* ViewModel */,
@@ -261,10 +270,20 @@
 			isa = PBXGroup;
 			children = (
 				C49CDCAC2F15525F0010FDE4 /* AudioService.swift */,
+				C4LOG001000000000000003 /* DataService.swift */,
 				C49CDCAE2F15525F0010FDE4 /* HapticService.swift */,
 				C49CDCAF2F15525F0010FDE4 /* SpeechService.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		C4LOG001000000000000010 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				C4LOG001000000000000001 /* DataManager.swift */,
+				C4LOG001000000000000002 /* MapTouchElementDetector.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 		C49CDCBA2F15525F0010FDE4 /* View */ = {
@@ -272,6 +291,7 @@
 			children = (
 				C4L2000100000000000000A0 /* AccessibleMapView.swift */,
 				C4POP0010000000000000A0 /* DisableInteractivePopGesture.swift */,
+				C4LOG001000000000000004 /* FilesListView.swift */,
 				C49820CA2F7EB72F00B1E80F /* FeedbackCustomizationTesterView.swift */,
 				C4L2000100000000000000B0 /* IntersectionDetailView.swift */,
 				C4L2000100000000000000C0 /* IntersectionDetailMapView.swift */,
@@ -481,6 +501,10 @@
 				C4L2000100000000000000B1 /* IntersectionDetailView.swift in Sources */,
 				C4L2000100000000000000C1 /* IntersectionDetailMapView.swift in Sources */,
 				C4L2000100000000000000D1 /* SidewalkFeature.swift in Sources */,
+				C4LOG001000000000000011 /* DataManager.swift in Sources */,
+				C4LOG001000000000000012 /* MapTouchElementDetector.swift in Sources */,
+				C4LOG001000000000000013 /* DataService.swift in Sources */,
+				C4LOG001000000000000014 /* FilesListView.swift in Sources */,
 				C4L2000100000000000000E1 /* CrosswalkFeature.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -657,7 +681,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = edu.northeastern.unarlabs.NFBTactile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -687,7 +711,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = edu.northeastern.unarlabs.NFBTactile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

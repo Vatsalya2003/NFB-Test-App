@@ -104,5 +104,6 @@ class IntersectionAnnotationView: MKAnnotationView {
         self.canShowCallout = false
         // Let touches pass through to the map for hit-testing and double-tap zoom.
         self.isUserInteractionEnabled = false
+        self.isAccessibilityElement = false
     }
 }

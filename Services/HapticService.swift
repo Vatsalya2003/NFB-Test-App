@@ -1,5 +1,5 @@
 // HapticService.swift
-// CoreHaptics engine — corridor continuous vibe, intersection slow pulse, landmark fast pulse.
+// CoreHaptics engine — corridor heavy buzz, intersection slow pulse, landmark fast pulse.
 
 import CoreHaptics
 import AVFoundation
@@ -33,9 +33,11 @@ class HapticService {
     private let defaultIntensity: Float = 1.0         // Maximum intensity (for intersections/landmarks)
     private let defaultSharpness: Float = 0.5         // Medium sharpness
     
-    // Corridor / street — steady continuous (stronger than before, still below route pulse peaks)
-    private let corridorIntensity: Float = 0.78
-    private let corridorSharpness: Float = 0.78
+    // Corridor / street — heavy buzz (full intensity, low sharpness = rumble)
+    private let corridorIntensity: Float = 1.0
+    private let corridorSharpness: Float = 0.1
+    /// Sidewalks use half-strength street vibration in intersection view.
+    static let sidewalkVibrationScale: Float = 0.5
     
     // Landmark pulse timing (faster, snappier - 2x faster than intersections)
     private let landmarkPulseInterval: TimeInterval = 0.12   // 0.12s between pulses (vs 0.25s)
@@ -135,8 +137,8 @@ class HapticService {
     
     // MARK: - Continuous Vibration (for Corridors)
     
-    /// Start continuous vibration
-    func startContinuousVibration() {
+    /// Start continuous street vibration. `intensityScale` 1.0 = heavy buzz; 0.5 = half-strength (sidewalks).
+    func startContinuousVibration(intensityScale: Float = 1.0) {
         let startTime = CACurrentMediaTime()
         let timeSinceLastCommand = startTime - lastCommandTime
         lastCommandTime = startTime
@@ -146,6 +148,7 @@ class HapticService {
             return
         }
         
+        let scale = max(0, min(intensityScale, 1.0))
         if isContinuousPlaying {
             print("Continuous vibration already playing")
             return
@@ -160,15 +163,14 @@ class HapticService {
                 try hapticEngine?.start()
             }
             
-            // Steady continuous hum — distinct from route's rhythmic pulse at full intensity
             let intensity = CHHapticEventParameter(
                 parameterID: .hapticIntensity,
-                value: corridorIntensity
+                value: corridorIntensity * scale
             )
             
             let sharpness = CHHapticEventParameter(
                 parameterID: .hapticSharpness,
-                value: corridorSharpness
+                value: corridorSharpness * scale
             )
             
             // Create a continuous event with long duration
@@ -382,9 +384,24 @@ class HapticService {
         startPulsingVibration()
     }
     
+    /// Single ding at a route turn — delegates to AudioService for reliable playback.
+    func playRouteTurnDing() {
+        DispatchQueue.main.async {
+            FeedbackManager.shared.playRouteTurnDing()
+        }
+    }
+
+    /// Light tap so route turns are noticeable even when the ringer is muted.
+    func playRouteTurnHapticTap() {
+        guard supportsHaptics else { return }
+        let impact = UIImpactFeedbackGenerator(style: .medium)
+        impact.prepare()
+        impact.impactOccurred(intensity: 0.9)
+    }
+
     /// Play the vertex ding sound
     private func playVertexDing() {
-        AudioServicesPlaySystemSound(1057)
+        playRouteTurnDing()
     }
     
     /// Stop vertex feedback - stops haptic and ding timer

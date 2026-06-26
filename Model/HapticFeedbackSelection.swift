@@ -30,46 +30,46 @@ enum MapElementType: String, CaseIterable, Identifiable {
 
 enum HapticPatternType: Int, CaseIterable, Identifiable {
     // App defaults — match HapticService / RouteMapView production patterns
-    case streetContinuous = 1
+    case heavyBuzz = 1
     case routeRhythmic = 2
     case intersectionSlowPulse = 3
     case landmarkFastPulse = 4
 
     // Alternates for study customization
-    case lightContinuous = 5
-    case sharpTransient = 6
-    case heavyBuzz = 7
+    case streetContinuous = 5
+    case lightContinuous = 6
+    case sharpTransient = 7
 
     var id: Int { rawValue }
 
     var label: String {
         switch self {
-        case .streetContinuous: return "Street"
+        case .heavyBuzz: return "Heavy buzz"
         case .routeRhythmic: return "Route"
         case .intersectionSlowPulse: return "Intersection"
         case .landmarkFastPulse: return "Landmark"
+        case .streetContinuous: return "Steady"
         case .lightContinuous: return "Light"
         case .sharpTransient: return "Sharp"
-        case .heavyBuzz: return "Buzz"
         }
     }
 
     var shortName: String {
         switch self {
-        case .streetContinuous: return "Steady 78%"
+        case .heavyBuzz: return "Full rumble"
         case .routeRhythmic: return "Fast pulse"
         case .intersectionSlowPulse: return "Slow + ding"
         case .landmarkFastPulse: return "Quick tick"
+        case .streetContinuous: return "Steady 78%"
         case .lightContinuous: return "Soft hum"
         case .sharpTransient: return "Sharp tap"
-        case .heavyBuzz: return "Heavy buzz"
         }
     }
 
     /// Patterns that mirror the live navigation map defaults.
     var isAppDefault: Bool {
         switch self {
-        case .streetContinuous, .routeRhythmic, .intersectionSlowPulse, .landmarkFastPulse:
+        case .heavyBuzz, .routeRhythmic, .intersectionSlowPulse, .landmarkFastPulse:
             return true
         default:
             return false
@@ -82,15 +82,15 @@ enum HapticPatternType: Int, CaseIterable, Identifiable {
 struct HapticFeedbackSelection {
     var selections: [MapElementType: HapticPatternType]
 
-    /// Defaults aligned with production: street continuous, route pulse, intersection slow pulse + ding, landmark fast pulse.
+    /// Defaults aligned with production: heavy buzz streets, route pulse, intersection slow pulse + ding, landmark fast pulse.
     static let defaults = HapticFeedbackSelection(selections: [
-        .corridor: .streetContinuous,
+        .corridor: .heavyBuzz,
         .route: .routeRhythmic,
         .intersection: .intersectionSlowPulse,
         .landmark: .landmarkFastPulse
     ])
 
     func pattern(for element: MapElementType) -> HapticPatternType {
-        selections[element] ?? .streetContinuous
+        selections[element] ?? .heavyBuzz
     }
 }

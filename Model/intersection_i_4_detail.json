@@ -108,45 +108,6 @@
       }
     },
     {
-      "id": "l2_poi_marriott",
-      "type": "landmark",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          500,
-          200
-        ]
-      },
-      "properties": {
-        "name": "Austin Marriott Downtown",
-        "tag": "AM",
-        "side": "left",
-        "category": "hotel",
-        "announcement": "Austin Marriott Downtown on your left"
-      }
-    },
-    {
-      "id": "l2_sw_brazos_h_w_north",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            100,
-            440
-          ],
-          [
-            440,
-            440
-          ]
-        ]
-      },
-      "properties": {
-        "name": "Sidewalk",
-        "level": 2
-      }
-    },
-    {
       "id": "l2_sw_brazos_h_e_north",
       "type": "sidewalk",
       "geometry": {

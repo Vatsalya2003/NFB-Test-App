@@ -31,6 +31,18 @@ struct RouteContentView: View {
                         .padding(.horizontal)
                     
                     NavigationLink(destination: RouteStudyView(
+                        title: "JW Marriott → Austin Marriott",
+                        routeFile: "route_jwmarriott_to_marriott"
+                    )) {
+                        StudyOptionButton(
+                            title: "JW Marriott → Austin Marriott",
+                            description: "East 1st St → Brazos St → East 2nd St",
+                            systemImage: "arrow.triangle.turn.up.right.diamond",
+                            color: .blue
+                        )
+                    }
+
+                    NavigationLink(destination: RouteStudyView(
                         title: "Marriott → JW Marriott",
                         routeFile: "route_marriott_to_jwmarriott"
                     )) {
@@ -41,30 +53,27 @@ struct RouteContentView: View {
                             color: .green
                         )
                     }
-
-                    NavigationLink(destination: RouteStudyView(
-                        title: "JW Marriott → Marriott",
-                        routeFile: "route_jwmarriott_to_marriott"
-                    )) {
-                        StudyOptionButton(
-                            title: "JW Marriott → Marriott",
-                            description: "East 1st St → Brazos St → East 2nd St",
-                            systemImage: "arrow.triangle.turn.up.right.diamond",
-                            color: .blue
-                        )
-                    }
                 }
                 
                 Divider()
                     .padding(.horizontal)
                 
-                // Feedback Customization Tester
+                // Tools
                 VStack(spacing: 16) {
                     Text("Tools")
                         .font(.headline)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
-                    
+
+                    NavigationLink(destination: FilesListView()) {
+                        StudyOptionButton(
+                            title: "Data Files",
+                            description: "View, share, and delete CSV touch logs",
+                            systemImage: "doc.text",
+                            color: .teal
+                        )
+                    }
+
                     NavigationLink(destination: FeedbackCustomizationTesterView()) {
                         StudyOptionButton(
                             title: "Feedback Customization Tester",

@@ -40,7 +40,7 @@ struct RouteMapView: UIViewRepresentable {
         mapView.touchDelegate = context.coordinator
         mapView.configureAccessibility(
             label: "Tactile navigation map",
-            hint: "Enable Direct Touch in VoiceOver, then drag to explore. Double tap a route intersection to zoom in. Do not two-finger swipe on the map."
+            hint: "Enable Direct Touch in VoiceOver, then drag to explore. Double tap a route intersection to open intersection view. Two-finger swipe right or Z gesture to go back."
         )
         mapView.layoutMargins = .zero
 
@@ -77,7 +77,7 @@ struct RouteMapView: UIViewRepresentable {
     }
 
     private func fitViewport(_ mapView: MKMapView) {
-        MapVisibleRectHelper.fitContent(mapView, features: features, routes: routes)
+        MapFixedViewport.applyRouteViewport(to: mapView, features: features, routes: routes)
     }
 
     func updateUIView(_ mapView: MKMapView, context: Context) {
@@ -86,8 +86,8 @@ struct RouteMapView: UIViewRepresentable {
         MapOrientation.applyRotation(rotated180: rotateMap180, to: mapView)
 
         if let accessibleMap = mapView as? AccessibleMapView {
-            accessibleMap.onAccessibilityScrollBack = nil
-            accessibleMap.onAccessibilityEscape = nil
+            accessibleMap.onAccessibilityScrollBack = onThreeFingerSwipe
+            accessibleMap.onAccessibilityEscape = onThreeFingerSwipe
             accessibleMap.touchDelegate = context.coordinator
         }
 
@@ -168,6 +168,7 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
     private var activeFeature: MapFeature?
     private var activeRouteSegmentIndex: Int?
     private var activeFeedbackKey: String = ""
+    private var lastAnnouncedRouteSegmentKey: String?
     private var lastUpdateTime: TimeInterval = 0
     private let updateThreshold: TimeInterval = 0.1
     private var fingerIsExploring = false
@@ -230,6 +231,7 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
 
         view?.annotation = annotation
         view?.isUserInteractionEnabled = false
+        view?.isAccessibilityElement = false
         return view
     }
 
@@ -261,15 +263,18 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
         switch gesture.state {
         case .began:
             fingerIsExploring = false
+            logTouchEvent(at: point, in: mapView, eventType: .touchDown)
             startFeedback(at: point, in: mapView)
         case .changed:
             fingerIsExploring = true
             if now - lastUpdateTime > updateThreshold {
                 lastUpdateTime = now
+                logTouchEvent(at: point, in: mapView, eventType: .touchMove)
                 updateFeedback(at: point, in: mapView)
             }
         case .ended, .cancelled, .failed:
             fingerIsExploring = false
+            logTouchEvent(at: point, in: mapView, eventType: .touchUp)
             stopFeedback()
         default:
             break
@@ -280,20 +285,25 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
 
     func accessibleMapView(_ mapView: MKMapView, touchBeganAt point: CGPoint) {
         fingerIsExploring = false
-        startFeedback(at: hitTestPoint(point, in: mapView), in: mapView)
+        let mapPoint = hitTestPoint(point, in: mapView)
+        logTouchEvent(at: mapPoint, in: mapView, eventType: .touchDown)
+        startFeedback(at: mapPoint, in: mapView)
     }
 
     func accessibleMapView(_ mapView: MKMapView, touchMovedTo point: CGPoint) {
         fingerIsExploring = true
         let now = CACurrentMediaTime()
+        let mapPoint = hitTestPoint(point, in: mapView)
         if now - lastUpdateTime > updateThreshold {
             lastUpdateTime = now
-            updateFeedback(at: hitTestPoint(point, in: mapView), in: mapView)
+            logTouchEvent(at: mapPoint, in: mapView, eventType: .touchMove)
+            updateFeedback(at: mapPoint, in: mapView)
         }
     }
 
     func accessibleMapView(_ mapView: MKMapView, touchEndedAt point: CGPoint) {
         fingerIsExploring = false
+        logTouchEvent(at: hitTestPoint(point, in: mapView), in: mapView, eventType: .touchUp)
         stopFeedback()
     }
 
@@ -333,7 +343,7 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
             return
         }
 
-        FeedbackManager.shared.speak("Opening intersection detail.")
+        FeedbackManager.shared.speak("Opening intersection view.")
         let openDetail = parent.onIntersectionDoubleTap
         DispatchQueue.main.async {
             openDetail?(tappedIntersection)
@@ -400,7 +410,7 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
             FeedbackManager.shared.speak(intersection.announcement)
         case let route as RouteFeature:
             FeedbackManager.shared.startRoutePulsing()
-            FeedbackManager.shared.speak(route.explorationAnnouncement(forSegmentIndex: activeRouteSegmentIndex ?? 0))
+            announceRouteIfNeeded(for: route, segmentIndex: activeRouteSegmentIndex ?? 0)
         default:
             FeedbackManager.shared.startContinuousSound()
             if let name = feature.properties["name"] as? String {
@@ -414,6 +424,19 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
         activeFeature = nil
         activeRouteSegmentIndex = nil
         activeFeedbackKey = ""
+        lastAnnouncedRouteSegmentKey = nil
+    }
+
+    private func routeSegmentKey(for route: RouteFeature, segmentIndex: Int) -> String {
+        "\(route.id)_segment_\(segmentIndex)"
+    }
+
+    /// Speak route guidance once per segment while tracing — avoids repeating "Route" on the same leg.
+    private func announceRouteIfNeeded(for route: RouteFeature, segmentIndex: Int) {
+        let key = routeSegmentKey(for: route, segmentIndex: segmentIndex)
+        guard key != lastAnnouncedRouteSegmentKey else { return }
+        lastAnnouncedRouteSegmentKey = key
+        FeedbackManager.shared.speak(route.explorationAnnouncement(forSegmentIndex: segmentIndex))
     }
 
     // MARK: Hit Testing
@@ -525,5 +548,21 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
         let projX = start.x + t * dx
         let projY = start.y + t * dy
         return hypot(point.x - projX, point.y - projY)
+    }
+
+    private func logTouchEvent(at point: CGPoint, in mapView: MKMapView, eventType: TouchEventType) {
+        guard DataService.shared.isSessionActive else { return }
+        Task { @MainActor in
+            DataService.shared.logTouchEvent(
+                at: point,
+                in: mapView,
+                eventType: eventType,
+                context: .routeOverview,
+                features: currentFeatures,
+                routes: currentRoutes,
+                routeEndpoints: currentRouteEndpoints,
+                landmarks: currentLandmarks
+            )
+        }
     }
 }

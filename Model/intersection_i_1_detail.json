@@ -189,27 +189,6 @@
       }
     },
     {
-      "id": "l2_sw_brazos_s_south",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            560,
-            560
-          ],
-          [
-            900,
-            560
-          ]
-        ]
-      },
-      "properties": {
-        "level": 2,
-        "name": "Sidewalk"
-      }
-    },
-    {
       "id": "l2_sw_e1st_n_west",
       "type": "sidewalk",
       "geometry": {
@@ -222,27 +201,6 @@
           [
             440,
             440
-          ]
-        ]
-      },
-      "properties": {
-        "level": 2,
-        "name": "Sidewalk"
-      }
-    },
-    {
-      "id": "l2_sw_e1st_s_west",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            440,
-            560
-          ],
-          [
-            440,
-            900
           ]
         ]
       },
@@ -294,6 +252,27 @@
       }
     },
     {
+      "id": "l2_cw_north",
+      "type": "crosswalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            440,
+            440
+          ],
+          [
+            560,
+            440
+          ]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Crosswalk north"
+      }
+    },
+    {
       "id": "l2_cw_e1st",
       "type": "crosswalk",
       "geometry": {
@@ -312,27 +291,6 @@
       "properties": {
         "level": 2,
         "name": "Crosswalk on East 1st Street"
-      }
-    },
-    {
-      "id": "l2_cw_west",
-      "type": "crosswalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            440,
-            440
-          ],
-          [
-            440,
-            560
-          ]
-        ]
-      },
-      "properties": {
-        "level": 2,
-        "name": "Crosswalk west"
       }
     },
     {

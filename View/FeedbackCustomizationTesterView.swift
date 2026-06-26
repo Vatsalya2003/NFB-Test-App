@@ -1,6 +1,6 @@
 // FeedbackCustomizationTesterView.swift
 // Dev tool on home screen — preview map and try different haptic patterns per element.
-// Default patterns match HapticService (street continuous, route pulse, etc.).
+// Default patterns match HapticService (street heavy buzz, route pulse, etc.).
 
 import SwiftUI
 import MapKit
@@ -183,7 +183,7 @@ class CustomHapticEngine: ObservableObject {
                 CHHapticEvent(eventType: .hapticContinuous, parameters: [
                     CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
                     CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.1)
-                ], relativeTime: 0, duration: 3.0 * durationScale)
+                ], relativeTime: 0, duration: loopCount == 1 ? 1.5 * durationScale : 100.0)
             ], parameters: [])
         }
     }

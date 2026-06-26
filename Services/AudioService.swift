@@ -5,6 +5,8 @@
 
 import Foundation
 import AVFoundation
+import UIKit
+import AudioToolbox
 import SenseKit
 
 @MainActor
@@ -24,6 +26,8 @@ class AudioService: NSObject {
     // MARK: - State
     private var isEngineRunning = false
     private var lastPlayTime: Date?
+    private var routeTurnDingEngine: AVAudioEngine?
+    private var routeTurnDingPlayer: AVAudioPlayerNode?
     
     // MARK: - Initialization
     override init() {
@@ -207,6 +211,11 @@ class AudioService: NSObject {
     // MARK: - Regular Speech (Condition 1)
     func speak(_ text: String) {
         print("AudioService: Starting speech: '\(text)'")
+
+        if UIAccessibility.isVoiceOverRunning {
+            UIAccessibility.post(notification: .announcement, argument: text)
+            return
+        }
         
         // Always stop previous speech to ensure new speech plays
         if speechSynthesizer.isSpeaking {
@@ -245,6 +254,11 @@ class AudioService: NSObject {
     // MARK: - Spatial Speech (Condition 2)
     func speakSpatially(_ text: String, at position: AVAudio3DPoint) {
         print("AudioService: Starting spatial speech: '\(text)' at x:\(position.x)")
+
+        if UIAccessibility.isVoiceOverRunning {
+            UIAccessibility.post(notification: .announcement, argument: text)
+            return
+        }
         
         // Always stop previous speech to ensure new speech plays
         if speechSynthesizer.isSpeaking {
@@ -414,6 +428,62 @@ class AudioService: NSObject {
             try session.setActive(true)
         } catch {
             print("❌ Failed to configure audio session: \(error)")
+        }
+    }
+
+    // MARK: - Route Turn Ding
+
+    /// Short metallic ding for orange route-turn dots. Uses a synthesized tone because
+    /// `AudioServicesPlaySystemSound` is often silent under the spoken-audio session.
+    func playRouteTurnDing() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try session.setActive(true)
+
+            routeTurnDingEngine?.stop()
+            routeTurnDingEngine = nil
+            routeTurnDingPlayer = nil
+
+            let engine = AVAudioEngine()
+            let player = AVAudioPlayerNode()
+            engine.attach(player)
+
+            let sampleRate = 44_100.0
+            let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
+            engine.connect(player, to: engine.mainMixerNode, format: format)
+
+            let duration = 0.14
+            let frequency = 1_050.0
+            let frameCount = AVAudioFrameCount(sampleRate * duration)
+            guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
+                AudioServicesPlayAlertSound(1_057)
+                return
+            }
+            buffer.frameLength = frameCount
+
+            let samples = buffer.floatChannelData![0]
+            for i in 0..<Int(frameCount) {
+                let t = Double(i) / sampleRate
+                let attack = min(t / 0.008, 1.0)
+                let decay = exp(-max(t - 0.008, 0) * 20)
+                samples[i] = Float(sin(2.0 * Double.pi * frequency * t) * attack * decay * 0.55)
+            }
+
+            engine.mainMixerNode.outputVolume = 1.0
+            try engine.start()
+            player.scheduleBuffer(buffer, at: nil, options: []) { [weak engine] in
+                DispatchQueue.main.async {
+                    engine?.stop()
+                }
+            }
+            player.play()
+
+            routeTurnDingEngine = engine
+            routeTurnDingPlayer = player
+        } catch {
+            print("AudioService: Route turn ding failed (\(error)), falling back to system sound")
+            AudioServicesPlayAlertSound(1_057)
         }
     }
 }

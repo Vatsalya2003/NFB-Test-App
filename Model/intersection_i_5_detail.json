@@ -150,27 +150,6 @@
       }
     },
     {
-      "id": "l2_sw_sj_h_w_south",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            100,
-            560
-          ],
-          [
-            440,
-            560
-          ]
-        ]
-      },
-      "properties": {
-        "name": "Sidewalk",
-        "level": 2
-      }
-    },
-    {
       "id": "l2_sw_sj_h_e_south",
       "type": "sidewalk",
       "geometry": {

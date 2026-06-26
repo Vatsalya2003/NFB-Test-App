@@ -63,7 +63,7 @@ class FeedbackManager {
     }
 
     // MARK: - For Corridors (Continuous vibration - NO SPEECH)
-    func startContinuousSound() {
+    func startContinuousSound(intensityScale: Float = 1.0) {
         if isPlayingContinuousSound {
             print("Already playing continuous vibration")
             return
@@ -72,9 +72,9 @@ class FeedbackManager {
         stopContinuousPulsing()
         
         isPlayingContinuousSound = true
-        hapticService.startContinuousVibration()
+        hapticService.startContinuousVibration(intensityScale: intensityScale)
         
-        print("Started corridor continuous vibration")
+        print("Started corridor continuous vibration (scale \(intensityScale))")
     }
     
     func stopContinuousSound() {
@@ -123,6 +123,12 @@ class FeedbackManager {
     func playPulseHaptic() {
         hapticService.playSingleTap()
         print("Single pulse haptic")
+    }
+
+    func playRouteTurnDing() {
+        audioService.playRouteTurnDing()
+        hapticService.playRouteTurnHapticTap()
+        print("Route turn ding")
     }
     
     // MARK: - Speech (Direct method using AudioService)

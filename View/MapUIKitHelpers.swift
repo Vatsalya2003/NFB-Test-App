@@ -3,6 +3,7 @@
 // All visual constants (road blue, intersection red, etc.) live here.
 
 import MapKit
+import UIKit
 
 enum MapRoadStyle {
     /// Road blue (#023e8a).
@@ -13,7 +14,7 @@ enum MapRoadStyle {
 enum MapIntersectionStyle {
     /// Intersection red (#c1121f).
     static let red = UIColor(red: 0xc1 / 255.0, green: 0x12 / 255.0, blue: 0x1f / 255.0, alpha: 1.0)
-    static let sideMM: CGFloat = 5.0
+    static let sideMM: CGFloat = 6.0
 }
 
 /// Level 2 intersection detail — wider roads, sidewalks beside them.
@@ -74,6 +75,29 @@ enum MapOrientation {
     routeFile == jwToMarriottRouteFile
   }
 
+  /// Landmarks in JSON are authored for Marriott → JW (left). JW → Marriott uses the opposite side.
+  static func shouldFlipLandmarkSide(forRouteFile routeFile: String) -> Bool {
+    routeFile == jwToMarriottRouteFile
+  }
+
+  static func flippedLandmarkSide(_ side: String) -> String {
+    switch side.lowercased() {
+    case "left": return "right"
+    case "right": return "left"
+    default: return side
+    }
+  }
+
+  static func flippedLandmarkAnnouncement(_ announcement: String) -> String {
+    if announcement.contains("on your left") {
+      return announcement.replacingOccurrences(of: "on your left", with: "on your right")
+    }
+    if announcement.contains("on your right") {
+      return announcement.replacingOccurrences(of: "on your right", with: "on your left")
+    }
+    return announcement
+  }
+
   /// Mirror a designer-grid point (0–1000) around the intersection center before stretch.
   static func mirrorDesignerCoordinate(_ coord: [Double]) -> [Double] {
     guard coord.count >= 2 else { return coord }
@@ -105,22 +129,67 @@ enum MapCrosswalkStyle {
 /// Level 2 intersection layout — sidewalk lines in designer JSON use 440/560 around center 500.
 enum MapIntersectionLayout {
     static let center = 500.0
-    /// Extra distance from road edge, in physical mm (added to baseline offset below).
-    static let sidewalkExtraSetbackMM: CGFloat = 2.0
-    /// Baseline designer offset for vertical sidewalks (X axis, not stretched).
-    private static let sidewalkOffsetBaseline = 132.0
-    /// Level 2 viewport: designer JSON units per mm on screen.
-    private static let designerUnitsPerMM = 15.5
-    /// Vertical sidewalk offset — baseline + extra mm setback.
-    static let sidewalkOffsetX = sidewalkOffsetBaseline + Double(sidewalkExtraSetbackMM) * designerUnitsPerMM
-    /// Designer offset for horizontal sidewalks — smaller because Y is stretched 2.6× in MapDataLoader.
-    static var sidewalkOffsetY: Double { sidewalkOffsetX / yStretchFactor }
-    /// Keep in sync with MapDataLoader.stretchFactor.
-    private static let yStretchFactor = 2.6
 
-    static func remapCoordinate(_ coord: [Double]) -> [Double] {
+    // MARK: - Level 2 layout (auto-calculated from 12 mm roads + viewport scale)
+    //
+    // Root cause of “route on street”: offset 60 matched thin JSON placeholders, but Level 2
+    // roads render at 12 mm (~96 designer units wide). Sidewalks/route at +60 still sit ON the blue stroke.
+    //
+    // Fine-tune sidewalk distance from road only (route ends stay at street legs 100/900).
+    static var intersectionSidewalkExtraMM: CGFloat = 1.3
+
+    static let legInnerBound = 100.0
+    static let legOuterBound = 900.0
+
+    /// Designer grid span visible at Level 2 (100…900).
+    private static let detailDesignerSpan: Double = 800.0
+    /// Approx map draw height in points (screen minus nav bars) at Level 2 zoom.
+    private static let detailViewportHeightPoints: CGFloat = 520.0
+    private static let designerUnitsPerMM: Double = 15.5
+
+    private static var designerUnitsPerPoint: Double {
+        detailDesignerSpan / Double(detailViewportHeightPoints)
+    }
+
+    /// Center (500) → sidewalk centerline; must clear 12 mm road half-width on screen.
+    static var intersectionSidewalkOffset: Double {
+        autoSidewalkOffsetFromRoadEdge() + Double(intersectionSidewalkExtraMM) * designerUnitsPerMM
+    }
+
+    private static func mmToDesignerUnits(_ mm: CGFloat) -> Double {
+        Double(PhysicalDimensions.mmToPoints(mm)) * designerUnitsPerPoint
+    }
+
+    private static func autoSidewalkOffsetFromRoadEdge() -> Double {
+        let roadHalf = mmToDesignerUnits(MapIntersectionDetailStyle.roadLineWidthMM / 2)
+        let sidewalkHalf = mmToDesignerUnits(MapSidewalkStyle.lineWidthMM / 2)
+        let crosswalk = mmToDesignerUnits(MapCrosswalkStyle.lineWidthMM)
+        let curbGap = mmToDesignerUnits(1.0)
+        return roadHalf + crosswalk + curbGap + sidewalkHalf
+    }
+
+    /// Extra setback for stretched Level 1 layout only (not intersection detail).
+    static let sidewalkExtraSetbackMM: CGFloat = 3.0
+    private static let sidewalkOffsetBaseline = 132.0
+    static let sidewalkOffsetX = sidewalkOffsetBaseline + Double(sidewalkExtraSetbackMM) * designerUnitsPerMM
+
+    static func sidewalkOffsetY(yStretchFactor: Double) -> Double {
+        yStretchFactor == 1.0 ? sidewalkOffsetX : sidewalkOffsetX / yStretchFactor
+    }
+
+    static func remapCoordinate(_ coord: [Double], yStretchFactor: Double = 1.0) -> [Double] {
         guard coord.count >= 2 else { return coord }
-        return [remapX(coord[0]), remapY(coord[1])]
+        if yStretchFactor == 1.0 {
+            return [remapDetailAxis(coord[0]), remapDetailAxis(coord[1])]
+        }
+        return [remapX(coord[0]), remapY(coord[1], yStretchFactor: yStretchFactor)]
+    }
+
+    /// Remaps JSON sidewalk placeholders 440/560 for unstretched intersection view.
+    private static func remapDetailAxis(_ value: Double) -> Double {
+        if value == 440 { return center - intersectionSidewalkOffset }
+        if value == 560 { return center + intersectionSidewalkOffset }
+        return value
     }
 
     private static func remapX(_ value: Double) -> Double {
@@ -129,9 +198,10 @@ enum MapIntersectionLayout {
         return value
     }
 
-    private static func remapY(_ value: Double) -> Double {
-        if value == 440 { return center - sidewalkOffsetY }
-        if value == 560 { return center + sidewalkOffsetY }
+    private static func remapY(_ value: Double, yStretchFactor: Double) -> Double {
+        let offset = sidewalkOffsetY(yStretchFactor: yStretchFactor)
+        if value == 440 { return center - offset }
+        if value == 560 { return center + offset }
         return value
     }
 }
@@ -139,13 +209,21 @@ enum MapIntersectionLayout {
 enum MapDestinationStyle {
     /// Yellow dot marking the route end / point of interest.
     static let color = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0)
-    static let diameterMM: CGFloat = 4.0
+    static let diameterMM: CGFloat = 6.0
+}
+
+enum MapRouteTurnStyle {
+    /// Orange dot at a route turn in intersection view.
+    static let color = UIColor(red: 1.0, green: 0.55, blue: 0.0, alpha: 1.0)
+    static let diameterMM: CGFloat = 5.0
 }
 
 enum MapFixedViewport {
     /// Fixed viewport tuned to a tall/narrow rect so corridor content fills the
     /// iPhone safe area top-to-bottom. Kept in sync with MapDesignerView's window.
     static let edgePadding = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+    /// Level 1 route map — inset for nav bar + home indicator (matches Level 2 detail).
+    static let routeEdgePadding = UIEdgeInsets(top: 72, left: 28, bottom: 40, right: 28)
 
     /// Vertical-flip pivot used when converting JSON coordinates to latitude.
     /// JSON/designer use a top-down Y axis (y=0 is top) while MapKit latitude is
@@ -154,31 +232,68 @@ enum MapFixedViewport {
     /// by MapDesignerView (160 + 1160), so the viewport stays identical after the flip.
     static let verticalFlipSum: Double = 1320
 
-    static func apply(to mapView: MKMapView, edgePadding: UIEdgeInsets? = nil) {
+    static func defaultMapRect() -> MKMapRect {
         let southwest = MKMapPoint(CLLocationCoordinate2D(latitude: 0.0016, longitude: 0.0027))
         let northeast = MKMapPoint(CLLocationCoordinate2D(latitude: 0.0116, longitude: 0.0073))
-        let mapRect = MKMapRect(
+        return MKMapRect(
             x: southwest.x,
             y: northeast.y,
             width: northeast.x - southwest.x,
             height: southwest.y - northeast.y
         )
+    }
+
+    static func apply(to mapView: MKMapView, edgePadding: UIEdgeInsets? = nil) {
         mapView.setVisibleMapRect(
-            mapRect,
+            defaultMapRect(),
             edgePadding: edgePadding ?? Self.edgePadding,
             animated: false
         )
     }
+
+    /// Same zoom as `apply` but pans to center corridors + route, with nav-bar padding.
+    static func applyRouteViewport(
+        to mapView: MKMapView,
+        features: [MapFeature],
+        routes: [RouteFeature] = []
+    ) {
+        var mapRect = defaultMapRect()
+        let corridors = MapVisibleRectHelper.corridorFeatures(from: features)
+        let contentRect = MapVisibleRectHelper.tightBoundingMapRect(for: corridors, routes: routes)
+        if !contentRect.isNull {
+            let dx = contentRect.midX - mapRect.midX
+            let dy = contentRect.midY - mapRect.midY
+            mapRect = MKMapRect(
+                x: mapRect.origin.x + dx,
+                y: mapRect.origin.y + dy,
+                width: mapRect.width,
+                height: mapRect.height
+            )
+        }
+        mapView.setVisibleMapRect(mapRect, edgePadding: routeEdgePadding, animated: false)
+    }
 }
 
 enum MapIntersectionViewport {
-    /// Fixed zoom for Level 2 — all intersection JSONs share the same 100–900 designer grid.
+    /// Fixed zoom for Level 2 — symmetric viewport so all intersection legs feel equal length.
+    /// Matches unstretched designer grid (100–900) at stretch factor 1.0.
     static let edgePadding = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
     static let detailEdgePadding = UIEdgeInsets(top: 72, left: 20, bottom: 40, right: 20)
 
+    private static let centerLatitude = (MapFixedViewport.verticalFlipSum - MapIntersectionLayout.center) / 100_000.0
+    private static let centerLongitude = MapIntersectionLayout.center / 100_000.0
+    /// Half-span in degrees — covers designer 50…950 with margin on each axis.
+    private static let halfSpan = 0.0045
+
     static func apply(to mapView: MKMapView, edgePadding: UIEdgeInsets? = nil) {
-        let southwest = MKMapPoint(CLLocationCoordinate2D(latitude: -0.003, longitude: 0.0005))
-        let northeast = MKMapPoint(CLLocationCoordinate2D(latitude: 0.019, longitude: 0.0095))
+        let southwest = MKMapPoint(CLLocationCoordinate2D(
+            latitude: centerLatitude - halfSpan,
+            longitude: centerLongitude - halfSpan
+        ))
+        let northeast = MKMapPoint(CLLocationCoordinate2D(
+            latitude: centerLatitude + halfSpan,
+            longitude: centerLongitude + halfSpan
+        ))
         let mapRect = MKMapRect(
             x: southwest.x,
             y: northeast.y,
@@ -203,6 +318,20 @@ enum MapFitMode {
 enum MapVisibleRectHelper {
     static func corridorFeatures(from features: [MapFeature]) -> [MapFeature] {
         features.filter { $0.featureType == "corridor" }
+    }
+
+    /// Overlay bounds only — used to center the fixed viewport without inflated padding.
+    static func tightBoundingMapRect(for features: [MapFeature], routes: [RouteFeature] = []) -> MKMapRect {
+        var mapRect = MKMapRect.null
+        for feature in features {
+            if let overlay = feature as? MKOverlay {
+                mapRect = mapRect.union(overlay.boundingMapRect)
+            }
+        }
+        for route in routes {
+            mapRect = mapRect.union(route.boundingMapRect)
+        }
+        return mapRect
     }
 
     static func boundingMapRect(for features: [MapFeature], routes: [RouteFeature] = []) -> MKMapRect {

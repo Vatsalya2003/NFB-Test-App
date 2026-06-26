@@ -129,27 +129,6 @@
       }
     },
     {
-      "id": "l2_sw_trinity_h_s_north",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            560,
-            440
-          ],
-          [
-            900,
-            440
-          ]
-        ]
-      },
-      "properties": {
-        "level": 2,
-        "name": "Sidewalk"
-      }
-    },
-    {
       "id": "l2_sw_trinity_h_n_south",
       "type": "sidewalk",
       "geometry": {

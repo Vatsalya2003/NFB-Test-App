@@ -112,6 +112,7 @@ class LandmarkAnnotationView: MKAnnotationView {
         self.layer.borderColor = UIColor.white.cgColor
         self.canShowCallout = false
         self.isUserInteractionEnabled = false
+        self.isAccessibilityElement = false
 
         tagLabel.textColor = .white
         tagLabel.textAlignment = .center

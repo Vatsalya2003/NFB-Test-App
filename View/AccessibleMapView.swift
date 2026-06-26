@@ -106,6 +106,15 @@ class AccessibleMapView: MKMapView {
         if #available(iOS 17.0, *) {
             accessibilityDirectTouchOptions = .silentOnTouch
         }
+
+        if UIAccessibility.isVoiceOverRunning, window != nil {
+            didPostVoiceOverFocus = false
+            didPostVoiceOverFocus = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+                guard let self = self, self.window != nil else { return }
+                UIAccessibility.post(notification: .layoutChanged, argument: self)
+            }
+        }
     }
 
     override func accessibilityScroll(_ direction: UIAccessibilityScrollDirection) -> Bool {
@@ -119,6 +128,7 @@ class AccessibleMapView: MKMapView {
     override func accessibilityPerformEscape() -> Bool {
         guard let action = onAccessibilityEscape else { return false }
         UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 0.8)
+        UIAccessibility.post(notification: .announcement, argument: "Going back")
         action()
         return true
     }

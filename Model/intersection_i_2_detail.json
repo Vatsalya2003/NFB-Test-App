@@ -108,24 +108,6 @@
       }
     },
     {
-      "id": "l2_poi_jw",
-      "type": "landmark",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          560,
-          820
-        ]
-      },
-      "properties": {
-        "name": "JW Marriott Austin",
-        "tag": "JW",
-        "side": "left",
-        "category": "hotel",
-        "announcement": "JW Marriott on your left"
-      }
-    },
-    {
       "id": "l2_sw_sj_h_n_north",
       "type": "sidewalk",
       "geometry": {
@@ -222,27 +204,6 @@
           [
             440,
             440
-          ]
-        ]
-      },
-      "properties": {
-        "level": 2,
-        "name": "Sidewalk"
-      }
-    },
-    {
-      "id": "l2_sw_e1st_s_west",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            440,
-            560
-          ],
-          [
-            440,
-            900
           ]
         ]
       },

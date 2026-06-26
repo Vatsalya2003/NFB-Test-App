@@ -202,6 +202,95 @@ class RouteEndpointFeature: NSObject, MapFeature, MKAnnotation {
     }
 }
 
+/// Orange dot where the route turns in intersection view — ding only, no speech or haptics.
+class RouteTurnFeature: NSObject, MapFeature, MKAnnotation {
+    let id: String
+    let featureType = "routeTurn"
+    let properties: [String: Any] = [:]
+    let coordinate: CLLocationCoordinate2D
+    dynamic var title: String?
+
+    init(id: String, coordinate: CLLocationCoordinate2D) {
+        self.id = id
+        self.coordinate = coordinate
+        self.title = "Route turn"
+        super.init()
+    }
+
+    /// Interior route vertices where the path changes direction (90° turns at i_1 and i_4).
+    static func turns(for route: RouteFeature) -> [RouteTurnFeature] {
+        let coords = route.coordinates
+        guard coords.count >= 3 else { return [] }
+
+        var turns: [RouteTurnFeature] = []
+        for index in 1..<(coords.count - 1) {
+            guard isTurnVertex(
+                previous: coords[index - 1],
+                current: coords[index],
+                next: coords[index + 1]
+            ) else { continue }
+            turns.append(RouteTurnFeature(
+                id: "\(route.id)_turn_\(index)",
+                coordinate: coords[index]
+            ))
+        }
+        return turns
+    }
+
+    private static func isTurnVertex(
+        previous: CLLocationCoordinate2D,
+        current: CLLocationCoordinate2D,
+        next: CLLocationCoordinate2D
+    ) -> Bool {
+        let dx1 = current.longitude - previous.longitude
+        let dy1 = current.latitude - previous.latitude
+        let dx2 = next.longitude - current.longitude
+        let dy2 = next.latitude - current.latitude
+        let cross = dx1 * dy2 - dy1 * dx2
+        return abs(cross) > 1e-14
+    }
+
+    @MainActor func startHapticFeedback() {}
+    @MainActor func stopHapticFeedback() {}
+    @MainActor func provideFeedback() {
+        FeedbackManager.shared.playRouteTurnDing()
+    }
+
+    func addToMap(_ mapView: MKMapView) {
+        mapView.addAnnotation(self)
+    }
+
+    func removeFromMap(_ mapView: MKMapView) {
+        mapView.removeAnnotation(self)
+    }
+}
+
+/// Orange circle marking a route turn point.
+class RouteTurnAnnotationView: MKAnnotationView {
+    override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
+        super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+        setupView()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        setupView()
+    }
+
+    private func setupView() {
+        let diameter = PhysicalDimensions.mmToPoints(MapRouteTurnStyle.diameterMM)
+        frame = CGRect(x: 0, y: 0, width: diameter, height: diameter)
+        backgroundColor = MapRouteTurnStyle.color
+        layer.cornerRadius = diameter / 2
+        layer.borderWidth = PhysicalDimensions.mmToPoints(0.4)
+        layer.borderColor = UIColor.white.cgColor
+        centerOffset = .zero
+        canShowCallout = false
+        isUserInteractionEnabled = false
+        isAccessibilityElement = false
+    }
+}
+
 /// Small yellow circle marking a route start or end point.
 class RouteEndpointAnnotationView: MKAnnotationView {
     override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
@@ -224,13 +313,7 @@ class RouteEndpointAnnotationView: MKAnnotationView {
         self.centerOffset = .zero
         self.canShowCallout = false
         self.isUserInteractionEnabled = false
-        if let endpoint = annotation as? RouteEndpointFeature {
-            isAccessibilityElement = true
-            accessibilityLabel = endpoint.announcement
-            accessibilityHint = endpoint.kind == .departure
-                ? "Starting point of the route"
-                : "End point of the route"
-        }
+        isAccessibilityElement = false
     }
 }
 
