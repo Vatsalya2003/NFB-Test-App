@@ -216,6 +216,12 @@ enum MapRouteTurnStyle {
     /// Orange dot at a route turn in intersection view.
     static let color = UIColor(red: 1.0, green: 0.55, blue: 0.0, alpha: 1.0)
     static let diameterMM: CGFloat = 5.0
+    static let borderWidthMM: CGFloat = 0.4
+
+    /// Hit radius aligned to `RouteTurnAnnotationView` (dot + white border).
+    static var hitRadiusPoints: CGFloat {
+        PhysicalDimensions.mmToPoints(diameterMM + borderWidthMM) / 2
+    }
 }
 
 enum MapFixedViewport {

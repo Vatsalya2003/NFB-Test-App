@@ -17,6 +17,7 @@ extension HapticService {
         stopContinuousVibration()
         stopPulsingVibration()
         stopRouteVibration()
+        stopCrosswalkPulsing()
 
         let pulseInterval: TimeInterval = 0.2
         let pulseDuration: TimeInterval = 0.12

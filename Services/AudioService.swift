@@ -28,6 +28,9 @@ class AudioService: NSObject {
     private var lastPlayTime: Date?
     private var routeTurnDingEngine: AVAudioEngine?
     private var routeTurnDingPlayer: AVAudioPlayerNode?
+    private var crosswalkTickEngine: AVAudioEngine?
+    private var crosswalkTickPlayer: AVAudioPlayerNode?
+    private var crosswalkTickBuffer: AVAudioPCMBuffer?
     
     // MARK: - Initialization
     override init() {
@@ -453,8 +456,9 @@ class AudioService: NSObject {
             let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
             engine.connect(player, to: engine.mainMixerNode, format: format)
 
-            let duration = 0.14
-            let frequency = 1_050.0
+            let duration = 0.16
+            let frequency = 1_120.0
+            let amplitude = 0.88
             let frameCount = AVAudioFrameCount(sampleRate * duration)
             guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
                 AudioServicesPlayAlertSound(1_057)
@@ -466,8 +470,8 @@ class AudioService: NSObject {
             for i in 0..<Int(frameCount) {
                 let t = Double(i) / sampleRate
                 let attack = min(t / 0.008, 1.0)
-                let decay = exp(-max(t - 0.008, 0) * 20)
-                samples[i] = Float(sin(2.0 * Double.pi * frequency * t) * attack * decay * 0.55)
+                let decay = exp(-max(t - 0.008, 0) * 18)
+                samples[i] = Float(sin(2.0 * Double.pi * frequency * t) * attack * decay * amplitude)
             }
 
             engine.mainMixerNode.outputVolume = 1.0
@@ -485,6 +489,75 @@ class AudioService: NSObject {
             print("AudioService: Route turn ding failed (\(error)), falling back to system sound")
             AudioServicesPlayAlertSound(1_057)
         }
+    }
+
+    // MARK: - Crosswalk Tick
+
+    func playCrosswalkTick() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try session.setActive(true)
+
+            let buffer = try crosswalkTickPCMBuffer()
+
+            if crosswalkTickEngine == nil {
+                let engine = AVAudioEngine()
+                let player = AVAudioPlayerNode()
+                engine.attach(player)
+                engine.connect(player, to: engine.mainMixerNode, format: buffer.format)
+                engine.mainMixerNode.outputVolume = 1.0
+                try engine.start()
+                crosswalkTickEngine = engine
+                crosswalkTickPlayer = player
+            }
+
+            guard let engine = crosswalkTickEngine, let player = crosswalkTickPlayer else { return }
+
+            if !engine.isRunning {
+                try engine.start()
+            }
+
+            player.stop()
+            player.scheduleBuffer(buffer, at: nil, options: .interrupts) {}
+            player.play()
+        } catch {
+            print("AudioService: Crosswalk tick failed (\(error))")
+        }
+    }
+
+    func stopCrosswalkAudio() {
+        crosswalkTickPlayer?.stop()
+        crosswalkTickEngine?.stop()
+        crosswalkTickEngine = nil
+        crosswalkTickPlayer = nil
+    }
+
+    private func crosswalkTickPCMBuffer() throws -> AVAudioPCMBuffer {
+        if let crosswalkTickBuffer {
+            return crosswalkTickBuffer
+        }
+
+        let sampleRate = 44_100.0
+        let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
+        let duration = 0.045
+        let frequency = 2_200.0
+        let frameCount = AVAudioFrameCount(sampleRate * duration)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
+            throw NSError(domain: "AudioService", code: 1)
+        }
+        buffer.frameLength = frameCount
+
+        let samples = buffer.floatChannelData![0]
+        for i in 0..<Int(frameCount) {
+            let t = Double(i) / sampleRate
+            let attack = min(t / 0.004, 1.0)
+            let decay = exp(-max(t - 0.004, 0) * 35)
+            samples[i] = Float(sin(2.0 * Double.pi * frequency * t) * attack * decay * 0.62)
+        }
+
+        crosswalkTickBuffer = buffer
+        return buffer
     }
 }
 

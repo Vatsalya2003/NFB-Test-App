@@ -94,11 +94,14 @@ enum MapTouchElementDetector {
         if let intersection = intersection(at: point, in: mapView, features: features) {
             return intersection.properties["name"] as? String ?? "Intersection"
         }
+        if let crosswalk = crosswalk(at: point, in: mapView, features: features) {
+            return crosswalk.properties["name"] as? String ?? "Crosswalk"
+        }
         if route(at: point, in: mapView, routes: routes) != nil {
             return "Route"
         }
-        if sidewalk(at: point, in: mapView, features: features) != nil {
-            return streetName(at: point, in: mapView, features: features) ?? "Sidewalk"
+        if let sidewalk = sidewalk(at: point, in: mapView, features: features) {
+            return sidewalk.announcement
         }
         if let corridor = corridor(
             at: point,
@@ -107,9 +110,6 @@ enum MapTouchElementDetector {
             lineWidthMM: MapIntersectionDetailStyle.roadLineWidthMM
         ) {
             return corridor.properties["name"] as? String ?? "Road"
-        }
-        if crosswalk(at: point, in: mapView, features: features) != nil {
-            return "Crosswalk"
         }
         return "Background"
     }
@@ -146,7 +146,7 @@ enum MapTouchElementDetector {
         in mapView: MKMapView,
         turns: [RouteTurnFeature]
     ) -> RouteTurnFeature? {
-        let radius = max(PhysicalDimensions.mmToPoints(MapRouteTurnStyle.diameterMM) / 2, 32)
+        let radius = MapRouteTurnStyle.hitRadiusPoints
         for turn in turns {
             let center = mapView.convert(turn.coordinate, toPointTo: nil)
             if hypot(point.x - center.x, point.y - center.y) <= radius {
@@ -247,13 +247,13 @@ enum MapTouchElementDetector {
         in mapView: MKMapView,
         features: [MapFeature]
     ) -> SidewalkFeature? {
-        let threshold = PhysicalDimensions.mmToPoints(MapSidewalkStyle.lineWidthMM) / 2
+        let threshold = max(PhysicalDimensions.mmToPoints(MapSidewalkStyle.lineWidthMM) / 2, 26)
         for feature in features where feature.featureType == "sidewalk" {
             guard let sw = feature as? SidewalkFeature else { continue }
             for i in 0..<(sw.coordinates.count - 1) {
                 let start = mapView.convert(sw.coordinates[i], toPointTo: nil)
                 let end = mapView.convert(sw.coordinates[i + 1], toPointTo: nil)
-                if distanceFromPoint(point, toLineFrom: start, to: end) < threshold {
+                if distanceFromPoint(point, toLineFrom: start, to: end) <= threshold {
                     return sw
                 }
             }
@@ -266,13 +266,13 @@ enum MapTouchElementDetector {
         in mapView: MKMapView,
         features: [MapFeature]
     ) -> CrosswalkFeature? {
-        let threshold = PhysicalDimensions.mmToPoints(MapCrosswalkStyle.lineWidthMM)
+        let threshold = max(PhysicalDimensions.mmToPoints(MapCrosswalkStyle.lineWidthMM) / 2, 34)
         for feature in features where feature.featureType == "crosswalk" {
             guard let cw = feature as? CrosswalkFeature else { continue }
             for i in 0..<(cw.coordinates.count - 1) {
                 let start = mapView.convert(cw.coordinates[i], toPointTo: nil)
                 let end = mapView.convert(cw.coordinates[i + 1], toPointTo: nil)
-                if distanceFromPoint(point, toLineFrom: start, to: end) < threshold {
+                if distanceFromPoint(point, toLineFrom: start, to: end) <= threshold {
                     return cw
                 }
             }

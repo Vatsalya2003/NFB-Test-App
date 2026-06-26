@@ -40,12 +40,12 @@ class CrosswalkFeature: NSObject, MapFeature, MKOverlay {
 
     @MainActor
     func startHapticFeedback() {
-        FeedbackManager.shared.startContinuousPulsing()
+        FeedbackManager.shared.startCrosswalkFeedback()
     }
 
     @MainActor
     func stopHapticFeedback() {
-        FeedbackManager.shared.stopContinuousPulsing()
+        FeedbackManager.shared.stopCrosswalkFeedback()
     }
 
     @MainActor

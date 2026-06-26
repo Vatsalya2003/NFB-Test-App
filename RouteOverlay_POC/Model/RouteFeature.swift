@@ -282,7 +282,7 @@ class RouteTurnAnnotationView: MKAnnotationView {
         frame = CGRect(x: 0, y: 0, width: diameter, height: diameter)
         backgroundColor = MapRouteTurnStyle.color
         layer.cornerRadius = diameter / 2
-        layer.borderWidth = PhysicalDimensions.mmToPoints(0.4)
+        layer.borderWidth = PhysicalDimensions.mmToPoints(MapRouteTurnStyle.borderWidthMM)
         layer.borderColor = UIColor.white.cgColor
         centerOffset = .zero
         canShowCallout = false

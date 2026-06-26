@@ -46,11 +46,11 @@
 		C4L20001000000000000F041 /* intersection_i_4_detail.json in Resources */ = {isa = PBXBuildFile; fileRef = C4L20001000000000000F040 /* intersection_i_4_detail.json */; };
 		C4L20001000000000000F051 /* intersection_i_5_detail.json in Resources */ = {isa = PBXBuildFile; fileRef = C4L20001000000000000F050 /* intersection_i_5_detail.json */; };
 		C4L20001000000000000F061 /* intersection_i_6_detail.json in Resources */ = {isa = PBXBuildFile; fileRef = C4L20001000000000000F060 /* intersection_i_6_detail.json */; };
-		C4POP0010000000000000A1 /* DisableInteractivePopGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4POP0010000000000000A0 /* DisableInteractivePopGesture.swift */; };
 		C4LOG001000000000000011 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4LOG001000000000000001 /* DataManager.swift */; };
 		C4LOG001000000000000012 /* MapTouchElementDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4LOG001000000000000002 /* MapTouchElementDetector.swift */; };
 		C4LOG001000000000000013 /* DataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4LOG001000000000000003 /* DataService.swift */; };
 		C4LOG001000000000000014 /* FilesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4LOG001000000000000004 /* FilesListView.swift */; };
+		C4POP0010000000000000A1 /* DisableInteractivePopGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4POP0010000000000000A0 /* DisableInteractivePopGesture.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -112,12 +112,12 @@
 		C4L20001000000000000F040 /* intersection_i_4_detail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intersection_i_4_detail.json; sourceTree = "<group>"; };
 		C4L20001000000000000F050 /* intersection_i_5_detail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intersection_i_5_detail.json; sourceTree = "<group>"; };
 		C4L20001000000000000F060 /* intersection_i_6_detail.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intersection_i_6_detail.json; sourceTree = "<group>"; };
-		C4NFB0002FDB7000001453CD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C4POP0010000000000000A0 /* DisableInteractivePopGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisableInteractivePopGesture.swift; sourceTree = "<group>"; };
 		C4LOG001000000000000001 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		C4LOG001000000000000002 /* MapTouchElementDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapTouchElementDetector.swift; sourceTree = "<group>"; };
 		C4LOG001000000000000003 /* DataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataService.swift; sourceTree = "<group>"; };
 		C4LOG001000000000000004 /* FilesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesListView.swift; sourceTree = "<group>"; };
+		C4NFB0002FDB7000001453CD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C4POP0010000000000000A0 /* DisableInteractivePopGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisableInteractivePopGesture.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -277,15 +277,6 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
-		C4LOG001000000000000010 /* Utilities */ = {
-			isa = PBXGroup;
-			children = (
-				C4LOG001000000000000001 /* DataManager.swift */,
-				C4LOG001000000000000002 /* MapTouchElementDetector.swift */,
-			);
-			path = Utilities;
-			sourceTree = "<group>";
-		};
 		C49CDCBA2F15525F0010FDE4 /* View */ = {
 			isa = PBXGroup;
 			children = (
@@ -316,6 +307,15 @@
 				C4NFB0002FDB7000001453CD /* Info.plist */,
 			);
 			path = "NFB Test";
+			sourceTree = "<group>";
+		};
+		C4LOG001000000000000010 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				C4LOG001000000000000001 /* DataManager.swift */,
+				C4LOG001000000000000002 /* MapTouchElementDetector.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -681,7 +681,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = edu.northeastern.unarlabs.NFBTactile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -711,7 +711,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = edu.northeastern.unarlabs.NFBTactile;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

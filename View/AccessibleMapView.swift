@@ -18,6 +18,9 @@ protocol AccessibleMapTouchDelegate: AnyObject {
 
 class AccessibleMapView: MKMapView {
 
+    /// Set before popping back to a parent map so VoiceOver does not re-read the map label/hint.
+    static var suppressVoiceOverLayoutFocus = false
+
     /// Two-finger swipe right in VoiceOver — only enable on screens where that should go back one level.
     var onAccessibilityScrollBack: (() -> Void)?
     /// Escape (two-finger Z) in VoiceOver.
@@ -58,9 +61,14 @@ class AccessibleMapView: MKMapView {
 
     override func didMoveToWindow() {
         super.didMoveToWindow()
-        guard window != nil,
-              UIAccessibility.isVoiceOverRunning,
-              !didPostVoiceOverFocus else { return }
+        guard window != nil, UIAccessibility.isVoiceOverRunning else { return }
+
+        if Self.suppressVoiceOverLayoutFocus {
+            Self.suppressVoiceOverLayoutFocus = false
+            return
+        }
+
+        guard !didPostVoiceOverFocus else { return }
         didPostVoiceOverFocus = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
             guard let self = self, self.window != nil else { return }
@@ -86,8 +94,8 @@ class AccessibleMapView: MKMapView {
 
     private func configureAccessibility() {
         configureAccessibility(
-            label: "Tactile navigation map",
-            hint: "Touch and drag to feel streets and hear names."
+            label: "Map overview",
+            hint: "Drag to explore. Double tap a route intersection for detail."
         )
     }
 
@@ -108,6 +116,10 @@ class AccessibleMapView: MKMapView {
         }
 
         if UIAccessibility.isVoiceOverRunning, window != nil {
+            if Self.suppressVoiceOverLayoutFocus {
+                Self.suppressVoiceOverLayoutFocus = false
+                return
+            }
             didPostVoiceOverFocus = false
             didPostVoiceOverFocus = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in

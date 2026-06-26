@@ -61,9 +61,16 @@ struct RouteStudyView: View {
             setupView()
             DataService.shared.startSession(routeTitle: title, routeFile: routeFile)
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIAccessibility.voiceOverStatusDidChangeNotification)) { _ in
+            announceScreenIntroIfNeeded()
+        }
         .onChange(of: intersectionZoomSelection) { _, newValue in
             if newValue == nil {
                 holdSessionForIntersection = false
+                AccessibleMapView.suppressVoiceOverLayoutFocus = true
+                if UIAccessibility.isVoiceOverRunning {
+                    UIAccessibility.post(notification: .announcement, argument: "Map overview")
+                }
             }
         }
         .onDisappear {
@@ -104,11 +111,16 @@ struct RouteStudyView: View {
         }
 
         if UIAccessibility.isVoiceOverRunning, !hasAnnouncedScreenIntro {
-            hasAnnouncedScreenIntro = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                let message = "Navigation map. Turn on Direct Touch in VoiceOver, then drag to explore. Double tap a route intersection to open intersection view. Two-finger swipe right or Z gesture to go back."
-                UIAccessibility.post(notification: .screenChanged, argument: message)
-            }
+            announceScreenIntroIfNeeded()
+        }
+    }
+
+    private func announceScreenIntroIfNeeded() {
+        guard UIAccessibility.isVoiceOverRunning, !hasAnnouncedScreenIntro else { return }
+        hasAnnouncedScreenIntro = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            let message = "Map overview"
+            UIAccessibility.post(notification: .screenChanged, argument: message)
         }
     }
 
@@ -116,7 +128,7 @@ struct RouteStudyView: View {
         DataService.shared.endSession()
         FeedbackManager.shared.stopAllFeedback()
         if UIAccessibility.isVoiceOverRunning {
-            UIAccessibility.post(notification: .announcement, argument: "Leaving navigation map")
+            UIAccessibility.post(notification: .announcement, argument: "Map overview")
         }
         presentationMode.wrappedValue.dismiss()
     }

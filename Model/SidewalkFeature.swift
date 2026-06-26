@@ -61,7 +61,7 @@ class SidewalkFeature: NSObject, MapFeature, MKOverlay {
 
     @MainActor
     func startHapticFeedback() {
-        FeedbackManager.shared.startContinuousSound()
+        FeedbackManager.shared.startStreetFeedback()
     }
 
     @MainActor

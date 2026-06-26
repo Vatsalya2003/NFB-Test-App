@@ -11,14 +11,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            300,
-            400
-          ],
-          [
-            300,
-            750
-          ]
+          [300, 400],
+          [300, 750]
         ]
       },
       "properties": {
@@ -33,14 +27,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            650,
-            400
-          ],
-          [
-            650,
-            700
-          ]
+          [650, 400],
+          [650, 750]
         ]
       },
       "properties": {
@@ -55,14 +43,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            300,
-            700
-          ],
-          [
-            650,
-            700
-          ]
+          [220, 700],
+          [730, 700]
         ]
       },
       "properties": {
@@ -77,14 +59,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            300,
-            600
-          ],
-          [
-            650,
-            600
-          ]
+          [220, 568],
+          [730, 568]
         ]
       },
       "properties": {
@@ -99,14 +75,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            300,
-            500
-          ],
-          [
-            650,
-            500
-          ]
+          [220, 470],
+          [730, 470]
         ]
       },
       "properties": {
@@ -118,43 +88,82 @@
     {
       "id": "i_1",
       "type": "intersection",
-      "geometry": { "type": "Point", "coordinates": [300, 500] },
-      "properties": { "name": "East 1st Street and Brazos Street", "level": 1 }
+      "geometry": {
+        "type": "Point",
+        "coordinates": [300, 470]
+      },
+      "properties": {
+        "name": "East 1st & Brazos",
+        "level": 1
+      }
     },
     {
       "id": "i_2",
       "type": "intersection",
-      "geometry": { "type": "Point", "coordinates": [300, 600] },
-      "properties": { "name": "East 1st Street and San Jacinto Boulevard", "level": 1 }
+      "geometry": {
+        "type": "Point",
+        "coordinates": [300, 568]
+      },
+      "properties": {
+        "name": "East 1st & San Jacinto",
+        "level": 1
+      }
     },
     {
       "id": "i_3",
       "type": "intersection",
-      "geometry": { "type": "Point", "coordinates": [300, 700] },
-      "properties": { "name": "East 1st Street and Trinity Street", "level": 1 }
+      "geometry": {
+        "type": "Point",
+        "coordinates": [300, 700]
+      },
+      "properties": {
+        "name": "East 1st & Trinity",
+        "level": 1
+      }
     },
     {
       "id": "i_4",
       "type": "intersection",
-      "geometry": { "type": "Point", "coordinates": [650, 500] },
-      "properties": { "name": "East 2nd Street and Brazos Street", "level": 1 }
+      "geometry": {
+        "type": "Point",
+        "coordinates": [650, 470]
+      },
+      "properties": {
+        "name": "East 2nd & Brazos",
+        "level": 1
+      }
     },
     {
       "id": "i_5",
       "type": "intersection",
-      "geometry": { "type": "Point", "coordinates": [650, 600] },
-      "properties": { "name": "East 2nd Street and San Jacinto Boulevard", "level": 1 }
+      "geometry": {
+        "type": "Point",
+        "coordinates": [650, 568]
+      },
+      "properties": {
+        "name": "East 2nd & San Jacinto",
+        "level": 1
+      }
     },
     {
       "id": "i_6",
       "type": "intersection",
-      "geometry": { "type": "Point", "coordinates": [650, 700] },
-      "properties": { "name": "East 2nd Street and Trinity Street", "level": 1 }
+      "geometry": {
+        "type": "Point",
+        "coordinates": [650, 700]
+      },
+      "properties": {
+        "name": "East 2nd & Trinity",
+        "level": 1
+      }
     },
     {
       "id": "lm_jw",
       "type": "landmark",
-      "geometry": { "type": "Point", "coordinates": [300, 640] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [299, 644]
+      },
       "properties": {
         "name": "JW Marriott Austin",
         "tag": "JW",
@@ -166,7 +175,10 @@
     {
       "id": "lm_marriott",
       "type": "landmark",
-      "geometry": { "type": "Point", "coordinates": [650, 455] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [650, 403]
+      },
       "properties": {
         "name": "Austin Marriott Downtown",
         "tag": "AM",

@@ -17,6 +17,8 @@ class FeedbackManager {
     // State tracking
     var isPlayingContinuousSound = false
     private var isPulsingHaptic = false
+    private(set) var isCrosswalkPulsing = false
+    private var routeTurnDingWorkItem: DispatchWorkItem?
     
     var presentationMode: LandmarkPresentationMode {
         get { speechService.presentationMode }
@@ -62,25 +64,49 @@ class FeedbackManager {
         hapticService.playSingleTap()
     }
 
-    // MARK: - For Corridors (Continuous vibration - NO SPEECH)
-    func startContinuousSound(intensityScale: Float = 1.0) {
-        if isPlayingContinuousSound {
-            print("Already playing continuous vibration")
+    // MARK: - For Roads (Heavy buzz) and Sidewalks (Street continuous)
+
+    private var continuousVibrationStyle: HapticService.ContinuousVibrationStyle?
+
+    /// Level 1 corridors and Level 2 blue roads — heavy buzz.
+    func startHeavyBuzzFeedback() {
+        startContinuousVibration(style: .heavyBuzz)
+    }
+
+    /// Level 2 gray sidewalks — softer “street” continuous rumble.
+    func startStreetFeedback() {
+        startContinuousVibration(style: .street)
+    }
+
+    private func startContinuousVibration(style: HapticService.ContinuousVibrationStyle) {
+        if isPlayingContinuousSound, continuousVibrationStyle == style {
             return
         }
-        
+
         stopContinuousPulsing()
-        
+        stopCrosswalkFeedback()
+
+        if isPlayingContinuousSound {
+            hapticService.stopContinuousVibration()
+        }
+
         isPlayingContinuousSound = true
-        hapticService.startContinuousVibration(intensityScale: intensityScale)
-        
-        print("Started corridor continuous vibration (scale \(intensityScale))")
+        continuousVibrationStyle = style
+        hapticService.startContinuousVibration(style: style)
+        print("Started \(style) continuous vibration")
     }
-    
+
+    /// Alias for roads on the route overview map.
+    func startContinuousSound(intensityScale: Float = 1.0) {
+        _ = intensityScale
+        startHeavyBuzzFeedback()
+    }
+
     func stopContinuousSound() {
         isPlayingContinuousSound = false
+        continuousVibrationStyle = nil
         hapticService.stopContinuousVibration()
-        print("Stopped corridor vibration")
+        print("Stopped corridor/sidewalk vibration")
     }
     
     // MARK: - For Intersections (Pulsing vibration + Ding, NO SPEECH)
@@ -91,6 +117,7 @@ class FeedbackManager {
         }
         
         stopContinuousSound()
+        stopCrosswalkFeedback()
         
         isPulsingHaptic = true
         hapticService.startVertexFeedback()
@@ -106,6 +133,7 @@ class FeedbackManager {
         }
         
         stopContinuousSound()
+        stopCrosswalkFeedback()
         
         isPulsingHaptic = true
         hapticService.startFastPulsingVibration()
@@ -118,6 +146,43 @@ class FeedbackManager {
         hapticService.stopVertexFeedback()
         print("Stopped pulsing + ding")
     }
+
+    // MARK: - For Crosswalks (tic-tic-tic haptics + tick sounds)
+    private var crosswalkTickTimer: Timer?
+
+    func startCrosswalkFeedback() {
+        if isCrosswalkPulsing {
+            return
+        }
+
+        stopContinuousSound()
+        stopContinuousPulsing()
+        stopRoutePulsing()
+
+        isCrosswalkPulsing = true
+        hapticService.startCrosswalkPulsing()
+
+        audioService.playCrosswalkTick()
+        crosswalkTickTimer?.invalidate()
+        crosswalkTickTimer = Timer.scheduledTimer(withTimeInterval: 0.17, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, self.isCrosswalkPulsing else { return }
+                self.audioService.playCrosswalkTick()
+            }
+        }
+
+        print("Started crosswalk tic-tic feedback")
+    }
+
+    func stopCrosswalkFeedback() {
+        guard isCrosswalkPulsing else { return }
+        isCrosswalkPulsing = false
+        crosswalkTickTimer?.invalidate()
+        crosswalkTickTimer = nil
+        audioService.stopCrosswalkAudio()
+        hapticService.stopCrosswalkPulsing()
+        print("Stopped crosswalk feedback")
+    }
     
     // MARK: - Single Pulse (for taps)
     func playPulseHaptic() {
@@ -129,6 +194,35 @@ class FeedbackManager {
         audioService.playRouteTurnDing()
         hapticService.playRouteTurnHapticTap()
         print("Route turn ding")
+    }
+
+    /// Stops crosswalk/route/speech haptics first, then plays the turn ding once it is audible.
+    func playRouteTurnDingOnce() {
+        routeTurnDingWorkItem?.cancel()
+
+        crosswalkTickTimer?.invalidate()
+        crosswalkTickTimer = nil
+        isCrosswalkPulsing = false
+        audioService.stopCrosswalkAudio()
+        hapticService.stopCrosswalkPulsing()
+
+        stopRoutePulsing()
+        stopContinuousSound()
+        stopContinuousPulsing()
+        speechService.stopAllFeedback()
+        hapticService.stopAllHaptics()
+        isPlayingContinuousSound = false
+        isPulsingHaptic = false
+        continuousVibrationStyle = nil
+
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.audioService.playRouteTurnDing()
+            self.hapticService.playRouteTurnHapticTap()
+            print("Route turn ding (exclusive)")
+        }
+        routeTurnDingWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08, execute: work)
     }
     
     // MARK: - Speech (Direct method using AudioService)
@@ -150,12 +244,19 @@ class FeedbackManager {
     
     // MARK: - Complete cleanup
     func stopAllFeedback() {
+        routeTurnDingWorkItem?.cancel()
+        routeTurnDingWorkItem = nil
+        crosswalkTickTimer?.invalidate()
+        crosswalkTickTimer = nil
+        audioService.stopCrosswalkAudio()
         hapticService.stopAllHaptics()
         speechService.stopAllFeedback()
-        
+
         isPlayingContinuousSound = false
         isPulsingHaptic = false
-        
+        isCrosswalkPulsing = false
+        continuousVibrationStyle = nil
+
         print("Stopped ALL feedback")
     }
     

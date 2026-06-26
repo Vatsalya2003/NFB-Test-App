@@ -23,6 +23,7 @@ class HapticService {
     private var continuousPlayer: CHHapticAdvancedPatternPlayer?
     var pulsePlayer: CHHapticAdvancedPatternPlayer?
     var routePlayer: CHHapticAdvancedPatternPlayer?
+    var crosswalkPlayer: CHHapticAdvancedPatternPlayer?
     private var hapticController: HapticController?
     
     private let continuousDuration: TimeInterval = 100.0  // Very long duration
@@ -33,16 +34,29 @@ class HapticService {
     private let defaultIntensity: Float = 1.0         // Maximum intensity (for intersections/landmarks)
     private let defaultSharpness: Float = 0.5         // Medium sharpness
     
-    // Corridor / street — heavy buzz (full intensity, low sharpness = rumble)
-    private let corridorIntensity: Float = 1.0
-    private let corridorSharpness: Float = 0.1
-    /// Sidewalks use half-strength street vibration in intersection view.
-    static let sidewalkVibrationScale: Float = 0.5
+    // Corridor / road — heavy buzz (full intensity, low sharpness rumble)
+    private let heavyBuzzIntensity: Float = 1.0
+    private let heavyBuzzSharpness: Float = 0.1
+    // Sidewalk — “street” continuous (matches Feedback Tester streetContinuous)
+    private let streetIntensity: Float = 0.78
+    private let streetSharpness: Float = 0.78
+
+    enum ContinuousVibrationStyle: Equatable {
+        case heavyBuzz
+        case street
+    }
+
+    private var activeContinuousStyle: ContinuousVibrationStyle?
     
     // Landmark pulse timing (faster, snappier - 2x faster than intersections)
     private let landmarkPulseInterval: TimeInterval = 0.12   // 0.12s between pulses (vs 0.25s)
     private let landmarkPulseDuration: TimeInterval = 0.08   // 0.08s pulse duration (vs 0.15s)
     private let landmarkSharpness: Float = 0.7
+
+    // Crosswalk — rapid tic-tic-tic (distinct from route pulse and turn ding)
+    private let crosswalkTickInterval: TimeInterval = 0.17
+    private let crosswalkIntensity: Float = 1.0
+    private let crosswalkSharpness: Float = 1.0
 
     // State tracking
     private var isContinuousPlaying = false
@@ -135,71 +149,73 @@ class HapticService {
         }
     }
     
-    // MARK: - Continuous Vibration (for Corridors)
-    
-    /// Start continuous street vibration. `intensityScale` 1.0 = heavy buzz; 0.5 = half-strength (sidewalks).
-    func startContinuousVibration(intensityScale: Float = 1.0) {
+    // MARK: - Continuous Vibration (roads + sidewalks)
+
+    /// Roads use heavy buzz; sidewalks use the softer “street” continuous pattern.
+    func startContinuousVibration(style: ContinuousVibrationStyle) {
         let startTime = CACurrentMediaTime()
         let timeSinceLastCommand = startTime - lastCommandTime
         lastCommandTime = startTime
-        
+
         guard supportsHaptics else {
             print("Device doesn't support haptics")
             return
         }
-        
-        let scale = max(0, min(intensityScale, 1.0))
-        if isContinuousPlaying {
-            print("Continuous vibration already playing")
+
+        if isContinuousPlaying, activeContinuousStyle == style {
             return
         }
-        
+
         do {
-            // Stop any pulsing first
             stopPulsingVibration()
-            
-            // Ensure engine is running
+            stopCrosswalkPulsing()
+            stopContinuousVibration()
+
             if hapticEngine?.currentTime == nil {
                 try hapticEngine?.start()
             }
-            
-            let intensity = CHHapticEventParameter(
-                parameterID: .hapticIntensity,
-                value: corridorIntensity * scale
-            )
-            
-            let sharpness = CHHapticEventParameter(
-                parameterID: .hapticSharpness,
-                value: corridorSharpness * scale
-            )
-            
-            // Create a continuous event with long duration
+
+            let intensityValue: Float
+            let sharpnessValue: Float
+            switch style {
+            case .heavyBuzz:
+                intensityValue = heavyBuzzIntensity
+                sharpnessValue = heavyBuzzSharpness
+            case .street:
+                intensityValue = streetIntensity
+                sharpnessValue = streetSharpness
+            }
+
+            let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: intensityValue)
+            let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: sharpnessValue)
+
             let continuousEvent = CHHapticEvent(
                 eventType: .hapticContinuous,
                 parameters: [intensity, sharpness],
                 relativeTime: 0,
-                duration: continuousDuration  // 100 seconds
+                duration: continuousDuration
             )
-            
-            // Create pattern
+
             let pattern = try CHHapticPattern(events: [continuousEvent], parameters: [])
-            
-            // Create and start player
             continuousPlayer = try hapticEngine?.makeAdvancedPlayer(with: pattern)
             try continuousPlayer?.start(atTime: CHHapticTimeImmediate)
-            
+
             isContinuousPlaying = true
-            
-            // Track diagnostics
+            activeContinuousStyle = style
             currentActivationStartTime = startTime
             diagnostics.startCount += 1
-            
-            let commandDelay = timeSinceLastCommand * 1000  // in ms
-            print("📳 START haptic: #\(diagnostics.startCount), delay since last cmd: \(String(format: "%.1f", commandDelay))ms")
-            
+
+            let commandDelay = timeSinceLastCommand * 1000
+            print("📳 START \(style) haptic: #\(diagnostics.startCount), delay: \(String(format: "%.1f", commandDelay))ms")
         } catch {
             print("Failed to start continuous vibration: \(error)")
         }
+    }
+
+    /// Level 1 map corridors — heavy buzz only.
+    func startContinuousVibration(intensityScale: Float = 1.0) {
+        _ = intensityScale
+        startContinuousVibration(style: .heavyBuzz)
     }
     
     /// Stop continuous vibration
@@ -209,6 +225,7 @@ class HapticService {
         lastCommandTime = stopTime
         
         isContinuousPlaying = false
+        activeContinuousStyle = nil
         
         // Track diagnostics if we were playing
         if let startTime = currentActivationStartTime {
@@ -243,6 +260,7 @@ class HapticService {
     func startPulsingVibration() {guard let engine = hapticEngine else { return }
         
         stopPulsingVibration()
+        stopCrosswalkPulsing()
         
         do {
             // Create pulsing pattern matching your specs
@@ -309,6 +327,7 @@ class HapticService {
         // Stop any existing vibrations first
         stopPulsingVibration()
         stopContinuousVibration()
+        stopCrosswalkPulsing()
         
         do {
             // Ensure engine is running
@@ -411,6 +430,53 @@ class HapticService {
         stopPulsingVibration()
         activeVertexIndex = nil
     }
+
+    // MARK: - Crosswalk (rapid tic-tic-tic — no ding)
+
+    /// Zebra-crossing feel: sharp repeating ticks while the finger stays on the crosswalk.
+    func startCrosswalkPulsing() {
+        guard let engine = hapticEngine else { return }
+
+        stopContinuousVibration()
+        stopPulsingVibration()
+        stopRouteVibration()
+        stopVertexFeedback()
+        stopCrosswalkPulsing()
+
+        do {
+            if engine.currentTime == nil {
+                try engine.start()
+            }
+
+            var events: [CHHapticEvent] = []
+            for i in 0..<80 {
+                let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: crosswalkIntensity)
+                let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: crosswalkSharpness)
+                events.append(CHHapticEvent(
+                    eventType: .hapticTransient,
+                    parameters: [intensity, sharpness],
+                    relativeTime: TimeInterval(i) * crosswalkTickInterval
+                ))
+            }
+
+            let pattern = try CHHapticPattern(events: events, parameters: [])
+            crosswalkPlayer = try engine.makeAdvancedPlayer(with: pattern)
+            crosswalkPlayer?.loopEnabled = true
+            try crosswalkPlayer?.start(atTime: CHHapticTimeImmediate)
+            print("✅ Started crosswalk tic-tic haptics")
+        } catch {
+            print("❌ Failed to start crosswalk haptics: \(error)")
+        }
+    }
+
+    func stopCrosswalkPulsing() {
+        do {
+            try crosswalkPlayer?.stop(atTime: CHHapticTimeImmediate)
+            crosswalkPlayer = nil
+        } catch {
+            print("Failed to stop crosswalk haptics: \(error)")
+        }
+    }
     
     // MARK: - Single Tap
     
@@ -468,6 +534,7 @@ class HapticService {
         stopPulsingVibration()
         stopRouteVibration()
         stopVertexFeedback()
+        stopCrosswalkPulsing()
         print("Stopped all haptics")
     }
     

@@ -39,8 +39,8 @@ struct RouteMapView: UIViewRepresentable {
         let mapView = AccessibleMapView()
         mapView.touchDelegate = context.coordinator
         mapView.configureAccessibility(
-            label: "Tactile navigation map",
-            hint: "Enable Direct Touch in VoiceOver, then drag to explore. Double tap a route intersection to open intersection view. Two-finger swipe right or Z gesture to go back."
+            label: "Map overview",
+            hint: "Drag to explore. Double tap a route intersection for detail."
         )
         mapView.layoutMargins = .zero
 
@@ -89,6 +89,10 @@ struct RouteMapView: UIViewRepresentable {
             accessibleMap.onAccessibilityScrollBack = onThreeFingerSwipe
             accessibleMap.onAccessibilityEscape = onThreeFingerSwipe
             accessibleMap.touchDelegate = context.coordinator
+            accessibleMap.configureAccessibility(
+                label: "Map overview",
+                hint: "Drag to explore. Double tap a route intersection for detail."
+            )
         }
 
         let featureOverlays = mapView.overlays.filter { !($0 is BlankTileOverlay) }
@@ -343,7 +347,6 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
             return
         }
 
-        FeedbackManager.shared.speak("Opening intersection view.")
         let openDetail = parent.onIntersectionDoubleTap
         DispatchQueue.main.async {
             openDetail?(tappedIntersection)

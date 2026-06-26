@@ -14,7 +14,7 @@ struct RouteContentView: View {
                         .font(.system(size: 50))
                         .foregroundColor(.green)
                     
-                    Text("Route Overlay Study")
+                    Text("NFB Test")
                         .font(.title)
                         .fontWeight(.bold)
                 }

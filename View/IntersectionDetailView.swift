@@ -46,9 +46,13 @@ struct IntersectionDetailView: View {
                 intersectionName: intersectionName
             )
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIAccessibility.voiceOverStatusDidChangeNotification)) { _ in
+            announceScreenIntroIfNeeded()
+        }
         .onDisappear {
             DataService.shared.setMapOverviewCondition(routeTitle: routeTitle)
             FeedbackManager.shared.stopAllFeedback()
+            AccessibleMapView.suppressVoiceOverLayoutFocus = true
         }
         .accessibilityAction(.escape) {
             goBack()
@@ -73,21 +77,22 @@ struct IntersectionDetailView: View {
         detailRouteTurns = detailRoutes.flatMap { RouteTurnFeature.turns(for: $0) }
 
         if UIAccessibility.isVoiceOverRunning, !hasAnnouncedScreenIntro {
-            hasAnnouncedScreenIntro = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                let message = "Intersection view. \(intersectionName). Follow the route to the yellow end dot. You will hear end of route. Double tap the end dot to return to map overview."
-                UIAccessibility.post(notification: .screenChanged, argument: message)
-            }
+            announceScreenIntroIfNeeded()
+        }
+    }
+
+    private func announceScreenIntroIfNeeded() {
+        guard UIAccessibility.isVoiceOverRunning, !hasAnnouncedScreenIntro else { return }
+        hasAnnouncedScreenIntro = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            let message = "Intersection view"
+            UIAccessibility.post(notification: .screenChanged, argument: message)
         }
     }
 
     private func goBack() {
         FeedbackManager.shared.stopAllFeedback()
-        if UIAccessibility.isVoiceOverRunning {
-            UIAccessibility.post(notification: .announcement, argument: "Map overview")
-        } else {
-            FeedbackManager.shared.speak("Map overview")
-        }
+        AccessibleMapView.suppressVoiceOverLayoutFocus = true
         presentationMode.wrappedValue.dismiss()
     }
 

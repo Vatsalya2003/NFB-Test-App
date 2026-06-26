@@ -13,6 +13,7 @@ extension FeedbackManager {
     func startRoutePulsing() {
         stopContinuousSound()
         stopContinuousPulsing()
+        stopCrosswalkFeedback()
 
         hapticService.startRouteVibration()
         print("Started route pulsing vibration")
