@@ -40,11 +40,13 @@ struct IntersectionDetailView: View {
         .navigationBarTitle("Intersection View", displayMode: .inline)
         .navigationBarBackButtonHidden(false)
         .onAppear {
+            hasAnnouncedScreenIntro = false
             loadIntersectionData()
             DataService.shared.setIntersectionCondition(
                 routeTitle: routeTitle,
                 intersectionName: intersectionName
             )
+            announceIntersectionViewIfNeeded()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIAccessibility.voiceOverStatusDidChangeNotification)) { _ in
             announceScreenIntroIfNeeded()
@@ -75,19 +77,17 @@ struct IntersectionDetailView: View {
 
         detailRoutes = IntersectionRouteLoader.loadRoutes(from: filename, routeFile: routeFile, mirror180: mirror)
         detailRouteTurns = detailRoutes.flatMap { RouteTurnFeature.turns(for: $0) }
+    }
 
-        if UIAccessibility.isVoiceOverRunning, !hasAnnouncedScreenIntro {
-            announceScreenIntroIfNeeded()
-        }
+    private func announceIntersectionViewIfNeeded() {
+        guard !hasAnnouncedScreenIntro else { return }
+        hasAnnouncedScreenIntro = true
+        let message = IntersectionFeature.viewAnnouncement(name: intersectionName)
+        MapViewAnnouncement.announce(message)
     }
 
     private func announceScreenIntroIfNeeded() {
-        guard UIAccessibility.isVoiceOverRunning, !hasAnnouncedScreenIntro else { return }
-        hasAnnouncedScreenIntro = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            let message = "Intersection view"
-            UIAccessibility.post(notification: .screenChanged, argument: message)
-        }
+        announceIntersectionViewIfNeeded()
     }
 
     private func goBack() {

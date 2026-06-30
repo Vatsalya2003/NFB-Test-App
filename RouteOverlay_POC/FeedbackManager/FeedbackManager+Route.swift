@@ -4,13 +4,14 @@ import AVFoundation
 /// Extension to FeedbackManager for route-specific feedback
 /// This adds route overlay haptic patterns differentiated from corridor feedback
 extension FeedbackManager {
-    
+
     // MARK: - Route-Specific Haptic Feedback
     
     /// Start route pulsing vibration - DIFFERENT pattern from corridor
     /// Route: Faster, rhythmic pulsing (feels like "walking guidance")
     /// Corridor: Continuous steady vibration (feels like "on path")
     func startRoutePulsing() {
+        isRouteOverCrosswalkFeedback = false
         stopContinuousSound()
         stopContinuousPulsing()
         stopCrosswalkFeedback()
@@ -20,6 +21,7 @@ extension FeedbackManager {
     }
     
     func stopRoutePulsing() {
+        isRouteOverCrosswalkFeedback = false
         hapticService.stopRouteVibration()
         print("Stopped route pulsing")
     }

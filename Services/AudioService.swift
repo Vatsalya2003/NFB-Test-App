@@ -28,9 +28,9 @@ class AudioService: NSObject {
     private var lastPlayTime: Date?
     private var routeTurnDingEngine: AVAudioEngine?
     private var routeTurnDingPlayer: AVAudioPlayerNode?
-    private var crosswalkTickEngine: AVAudioEngine?
-    private var crosswalkTickPlayer: AVAudioPlayerNode?
-    private var crosswalkTickBuffer: AVAudioPCMBuffer?
+    private var crosswalkClickEngine: AVAudioEngine?
+    private var crosswalkClickPlayer: AVAudioPlayerNode?
+    private var crosswalkClickBuffer: AVAudioPCMBuffer?
     
     // MARK: - Initialization
     override init() {
@@ -491,28 +491,30 @@ class AudioService: NSObject {
         }
     }
 
-    // MARK: - Crosswalk Tick
+    // MARK: - Crosswalk Click
 
+    /// Soft UI click for crosswalks — matches the Study 0 landmark/moving-dot tick (system sound 1104),
+    /// synthesized here so it stays audible under the spoken-audio session.
     func playCrosswalkTick() {
         do {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try session.setActive(true)
 
-            let buffer = try crosswalkTickPCMBuffer()
+            let buffer = try crosswalkClickPCMBuffer()
 
-            if crosswalkTickEngine == nil {
+            if crosswalkClickEngine == nil {
                 let engine = AVAudioEngine()
                 let player = AVAudioPlayerNode()
                 engine.attach(player)
                 engine.connect(player, to: engine.mainMixerNode, format: buffer.format)
-                engine.mainMixerNode.outputVolume = 1.0
+                engine.mainMixerNode.outputVolume = 0.64
                 try engine.start()
-                crosswalkTickEngine = engine
-                crosswalkTickPlayer = player
+                crosswalkClickEngine = engine
+                crosswalkClickPlayer = player
             }
 
-            guard let engine = crosswalkTickEngine, let player = crosswalkTickPlayer else { return }
+            guard let engine = crosswalkClickEngine, let player = crosswalkClickPlayer else { return }
 
             if !engine.isRunning {
                 try engine.start()
@@ -522,26 +524,27 @@ class AudioService: NSObject {
             player.scheduleBuffer(buffer, at: nil, options: .interrupts) {}
             player.play()
         } catch {
-            print("AudioService: Crosswalk tick failed (\(error))")
+            print("AudioService: Crosswalk click failed (\(error)), falling back to system sound")
+            AudioServicesPlaySystemSound(1_104)
         }
     }
 
     func stopCrosswalkAudio() {
-        crosswalkTickPlayer?.stop()
-        crosswalkTickEngine?.stop()
-        crosswalkTickEngine = nil
-        crosswalkTickPlayer = nil
+        crosswalkClickPlayer?.stop()
+        crosswalkClickEngine?.stop()
+        crosswalkClickEngine = nil
+        crosswalkClickPlayer = nil
     }
 
-    private func crosswalkTickPCMBuffer() throws -> AVAudioPCMBuffer {
-        if let crosswalkTickBuffer {
-            return crosswalkTickBuffer
+    private func crosswalkClickPCMBuffer() throws -> AVAudioPCMBuffer {
+        if let crosswalkClickBuffer {
+            return crosswalkClickBuffer
         }
 
         let sampleRate = 44_100.0
         let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
-        let duration = 0.045
-        let frequency = 2_200.0
+        let duration = 0.012
+        let amplitude = 0.14
         let frameCount = AVAudioFrameCount(sampleRate * duration)
         guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
             throw NSError(domain: "AudioService", code: 1)
@@ -551,12 +554,13 @@ class AudioService: NSObject {
         let samples = buffer.floatChannelData![0]
         for i in 0..<Int(frameCount) {
             let t = Double(i) / sampleRate
-            let attack = min(t / 0.004, 1.0)
-            let decay = exp(-max(t - 0.004, 0) * 35)
-            samples[i] = Float(sin(2.0 * Double.pi * frequency * t) * attack * decay * 0.62)
+            let envelope = exp(-t * 280)
+            let body = sin(2.0 * Double.pi * 820.0 * t)
+            let snap = sin(2.0 * Double.pi * 1_640.0 * t) * exp(-t * 520)
+            samples[i] = Float((body * 0.6 + snap * 0.4) * envelope * amplitude)
         }
 
-        crosswalkTickBuffer = buffer
+        crosswalkClickBuffer = buffer
         return buffer
     }
 }

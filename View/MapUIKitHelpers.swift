@@ -122,7 +122,11 @@ enum MapSidewalkStyle {
 enum MapCrosswalkStyle {
     /// Crosswalk white with dashes.
     static let color = UIColor.white
-    static let lineWidthMM: CGFloat = 2.0
+    static let lineWidthMM: CGFloat = 2.8
+    /// Length of each white stripe along the crossing (matches prior dashPattern[0]).
+    static let dashLengthPoints: CGFloat = 6
+    static let stripeCount = 3
+    /// Legacy dash pattern — kept for reference; rendering uses `CrosswalkStripeRenderer`.
     static let dashPattern: [NSNumber] = [6, 4]
 }
 
@@ -203,6 +207,21 @@ enum MapIntersectionLayout {
         if value == 440 { return center - offset }
         if value == 560 { return center + offset }
         return value
+    }
+}
+
+enum MapViewAnnouncement {
+    static let mapOverview = "Map Overview"
+
+    /// Speaks for sighted users; posts a screen change for VoiceOver.
+    static func announce(_ message: String, delay: TimeInterval = 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            if UIAccessibility.isVoiceOverRunning {
+                UIAccessibility.post(notification: .screenChanged, argument: message)
+            } else {
+                FeedbackManager.shared.speak(message)
+            }
+        }
     }
 }
 
@@ -483,6 +502,67 @@ class FittingMapView: MKMapView {
             routes: fitRoutes,
             edgePadding: effectiveEdgePadding
         )
+    }
+}
+
+/// Draws exactly three crosswalk stripes — same 2 mm × 6 pt size as the dashed style, evenly spaced.
+final class CrosswalkStripeRenderer: MKPolylineRenderer {
+    override func draw(_ mapRect: MKMapRect, zoomScale: MKZoomScale, in context: CGContext) {
+        guard let polyline = overlay as? MKPolyline, polyline.pointCount >= 2 else { return }
+
+        let mapPoints = UnsafeBufferPointer(start: polyline.points(), count: polyline.pointCount)
+        let viewPoints = mapPoints.map { point(for: $0) }
+
+        var polylineLength: CGFloat = 0
+        for i in 0..<(viewPoints.count - 1) {
+            let dx = viewPoints[i + 1].x - viewPoints[i].x
+            let dy = viewPoints[i + 1].y - viewPoints[i].y
+            polylineLength += hypot(dx, dy)
+        }
+        guard polylineLength > 1 else { return }
+
+        let dashLength = MapCrosswalkStyle.dashLengthPoints / zoomScale
+        let lineWidth = PhysicalDimensions.mmToPoints(MapCrosswalkStyle.lineWidthMM) / zoomScale
+        let stripeCount = CGFloat(MapCrosswalkStyle.stripeCount)
+        let totalDash = dashLength * stripeCount
+        let gap = max((polylineLength - totalDash) / (stripeCount + 1), 0)
+
+        context.setStrokeColor(MapCrosswalkStyle.color.cgColor)
+        context.setLineWidth(lineWidth)
+        context.setLineCap(.butt)
+
+        var offset = gap
+        for _ in 0..<MapCrosswalkStyle.stripeCount {
+            let stripeStart = pointAlongPolyline(at: offset, points: viewPoints)
+            let stripeEnd = pointAlongPolyline(at: offset + dashLength, points: viewPoints)
+            if let stripeStart, let stripeEnd {
+                context.beginPath()
+                context.move(to: stripeStart)
+                context.addLine(to: stripeEnd)
+                context.strokePath()
+            }
+            offset += dashLength + gap
+        }
+    }
+
+    private func pointAlongPolyline(at distance: CGFloat, points: [CGPoint]) -> CGPoint? {
+        guard !points.isEmpty else { return nil }
+        if distance <= 0 { return points[0] }
+
+        var remaining = distance
+        for i in 0..<(points.count - 1) {
+            let dx = points[i + 1].x - points[i].x
+            let dy = points[i + 1].y - points[i].y
+            let segmentLength = hypot(dx, dy)
+            guard segmentLength > 0 else { continue }
+
+            if remaining <= segmentLength {
+                let t = remaining / segmentLength
+                return CGPoint(x: points[i].x + t * dx, y: points[i].y + t * dy)
+            }
+            remaining -= segmentLength
+        }
+        return points.last
     }
 }
 

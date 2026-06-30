@@ -28,7 +28,12 @@ class RouteFeature: NSObject, MapFeature, MKOverlay {
     }
 
     func explorationAnnouncement(forSegmentIndex segmentIndex: Int) -> String {
-        segmentIndex == 0 ? routeToDestinationAnnouncement : explorationAnnouncement
+        explorationAnnouncement(forLegIndex: segmentIndex)
+    }
+
+    /// Leg 0 = departure → first route waypoint; later legs say "Route" only.
+    func explorationAnnouncement(forLegIndex legIndex: Int) -> String {
+        legIndex == 0 ? routeToDestinationAnnouncement : explorationAnnouncement
     }
 
     /// Spoken destination names for route guidance.
@@ -128,7 +133,7 @@ class RouteEndpointFeature: NSObject, MapFeature, MKAnnotation {
 
     /// Spoken at the yellow start dot in Level 2 intersection detail.
     static func intersectionDepartureAnnouncement(intersectionName: String) -> String {
-        "Your location at the intersection of \(intersectionName)"
+        "Your location at the intersection of \(IntersectionFeature.formattedStreetPair(from: intersectionName))"
     }
 
     let id: String

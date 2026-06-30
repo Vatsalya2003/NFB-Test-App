@@ -34,6 +34,7 @@ class MapDataLoader {
         }
         
         var mapFeatures: [MapFeature] = []
+        let isIntersectionDetail = filename.contains("intersection_") && filename.contains("_detail")
         
         for featureJSON in features {
             guard let id = featureJSON["id"] as? String,
@@ -64,6 +65,7 @@ class MapDataLoader {
                 }
                 
             case "intersection":
+                guard !isIntersectionDetail else { continue }
                 if let coords = coordinates as? [Double] {
                     let mirroredCoords = mirror180 ? MapOrientation.mirrorDesignerCoordinate(coords) : coords
                     let stretchedCoords = stretchCoordinate(mirroredCoords, stretchFactor: stretch)

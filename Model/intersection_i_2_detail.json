@@ -1,7 +1,7 @@
 {
   "type": "FeatureCollection",
   "intersectionId": "i_2",
-  "description": "East 1st Street and San Jacinto Boulevard \u2014 plus-shaped 4-way, route continues south on E 1st",
+  "description": "East 1st Street and San Jacinto Boulevard — 4-way; no west-arm sidewalks; no south crosswalk; route on east",
   "orientation": "e1st-vertical",
   "bounds": {
     "width": 1000,
@@ -14,14 +14,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            500,
-            500
-          ],
-          [
-            900,
-            500
-          ]
+          [500, 500],
+          [900, 500]
         ]
       },
       "properties": {
@@ -35,14 +29,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            100,
-            500
-          ],
-          [
-            500,
-            500
-          ]
+          [100, 500],
+          [500, 500]
         ]
       },
       "properties": {
@@ -56,14 +44,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            500,
-            100
-          ],
-          [
-            500,
-            500
-          ]
+          [500, 100],
+          [500, 500]
         ]
       },
       "properties": {
@@ -77,14 +59,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            500,
-            500
-          ],
-          [
-            500,
-            900
-          ]
+          [500, 500],
+          [500, 900]
         ]
       },
       "properties": {
@@ -97,10 +73,7 @@
       "type": "intersection",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          500,
-          500
-        ]
+        "coordinates": [500, 500]
       },
       "properties": {
         "name": "East 1st Street and San Jacinto Boulevard",
@@ -113,14 +86,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            100,
-            440
-          ],
-          [
-            440,
-            440
-          ]
+          [100, 440],
+          [440, 440]
         ]
       },
       "properties": {
@@ -134,14 +101,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            560,
-            440
-          ],
-          [
-            900,
-            440
-          ]
+          [560, 440],
+          [900, 440]
         ]
       },
       "properties": {
@@ -155,14 +116,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            100,
-            560
-          ],
-          [
-            440,
-            560
-          ]
+          [100, 560],
+          [440, 560]
         ]
       },
       "properties": {
@@ -176,35 +131,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            560,
-            560
-          ],
-          [
-            900,
-            560
-          ]
-        ]
-      },
-      "properties": {
-        "level": 2,
-        "name": "Sidewalk"
-      }
-    },
-    {
-      "id": "l2_sw_e1st_n_west",
-      "type": "sidewalk",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            440,
-            100
-          ],
-          [
-            440,
-            440
-          ]
+          [560, 560],
+          [900, 560]
         ]
       },
       "properties": {
@@ -218,14 +146,23 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            560,
-            100
-          ],
-          [
-            560,
-            440
-          ]
+          [560, 100],
+          [560, 440]
+        ]
+      },
+      "properties": {
+        "level": 2,
+        "name": "Sidewalk"
+      }
+    },
+    {
+      "id": "l2_sw_e1st_s_west",
+      "type": "sidewalk",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [440, 560],
+          [440, 900]
         ]
       },
       "properties": {
@@ -239,14 +176,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            560,
-            560
-          ],
-          [
-            560,
-            900
-          ]
+          [560, 560],
+          [560, 900]
         ]
       },
       "properties": {
@@ -260,14 +191,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            440,
-            440
-          ],
-          [
-            560,
-            440
-          ]
+          [440, 440],
+          [560, 440]
         ]
       },
       "properties": {
@@ -276,24 +201,18 @@
       }
     },
     {
-      "id": "l2_cw_south",
+      "id": "l2_cw_west",
       "type": "crosswalk",
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            440,
-            560
-          ],
-          [
-            560,
-            560
-          ]
+          [440, 440],
+          [440, 560]
         ]
       },
       "properties": {
         "level": 2,
-        "name": "Crosswalk south"
+        "name": "Crosswalk west"
       }
     },
     {
@@ -302,14 +221,8 @@
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [
-            560,
-            440
-          ],
-          [
-            560,
-            560
-          ]
+          [560, 440],
+          [560, 560]
         ]
       },
       "properties": {
@@ -322,14 +235,8 @@
     "geometry": {
       "type": "LineString",
       "coordinates": [
-        [
-          560,
-          100
-        ],
-        [
-          560,
-          900
-        ]
+        [560, 100],
+        [560, 900]
       ]
     },
     "properties": {

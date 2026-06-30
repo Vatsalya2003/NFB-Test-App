@@ -20,7 +20,7 @@ struct IntersectionDetailMapView: UIViewRepresentable {
         mapView.touchDelegate = context.coordinator
         mapView.configureAccessibility(
             label: "Intersection view",
-            hint: "Touch and drag to follow the route. At the yellow end dot you will hear end of route. Double tap the end dot to return to map overview."
+            hint: "Touch and drag to follow the route. At the yellow end dot you will hear end of route. Double tap anywhere to return to map overview."
         )
         mapView.layoutMargins = .zero
 
@@ -71,7 +71,7 @@ struct IntersectionDetailMapView: UIViewRepresentable {
             accessibleMap.touchDelegate = context.coordinator
             accessibleMap.configureAccessibility(
                 label: "Intersection view",
-                hint: "Touch and drag to follow the route. At the yellow end dot you will hear end of route. Double tap the end dot to return to map overview."
+                hint: "Touch and drag to follow the route. At the yellow end dot you will hear end of route. Double tap anywhere to return to map overview."
             )
         }
 
@@ -83,10 +83,9 @@ struct IntersectionDetailMapView: UIViewRepresentable {
         let corridors = mapFeatures.filter { $0.featureType == "corridor" }
         let sidewalks = mapFeatures.filter { $0.featureType == "sidewalk" }
         let crosswalks = mapFeatures.filter { $0.featureType == "crosswalk" }
-        let intersections = mapFeatures.compactMap { $0 as? IntersectionFeature }
 
         context.coordinator.currentFeatures = mapFeatures
-        context.coordinator.currentIntersections = intersections
+        context.coordinator.currentIntersections = []
         context.coordinator.currentRoutes = routes
         context.coordinator.currentRouteTurns = routeTurns
 
@@ -95,7 +94,6 @@ struct IntersectionDetailMapView: UIViewRepresentable {
         sidewalks.forEach { $0.addToMap(mapView) }
         routes.forEach { $0.addToMap(mapView) }
         crosswalks.forEach { $0.addToMap(mapView) }
-        intersections.forEach { $0.addToMap(mapView) }
 
         let routeEndpoints = routes.flatMap { RouteEndpointFeature.endpoints(for: $0) }
         context.coordinator.currentRouteEndpoints = routeEndpoints
@@ -150,6 +148,7 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
     var currentRoutes: [RouteFeature] = []
 
     private var activeFeature: MapFeature?
+    private var activeFeedbackKey = ""
     private var announcedDestinationEnd = false
     private var lastUpdateTime: TimeInterval = 0
     private let updateThreshold: TimeInterval = 0.1
@@ -189,12 +188,7 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
         }
 
         if overlay is CrosswalkPolyline {
-            let renderer = MKPolylineRenderer(overlay: overlay)
-            renderer.strokeColor = MapCrosswalkStyle.color
-            renderer.lineWidth = PhysicalDimensions.mmToPoints(MapCrosswalkStyle.lineWidthMM)
-            renderer.lineDashPattern = MapCrosswalkStyle.dashPattern
-            renderer.lineCap = .butt
-            return renderer
+            return CrosswalkStripeRenderer(overlay: overlay)
         }
 
         // Corridors — 12 mm wide in Level 2
@@ -326,11 +320,18 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
 
         FeedbackManager.shared.playPulseHaptic()
 
-        if let crosswalk = crosswalk(at: point, in: mapView) {
+        if isOnRouteCrosswalk(at: point, in: mapView), let route = route(at: point, in: mapView) {
+            FeedbackManager.shared.startRouteOverCrosswalkFeedback()
+            FeedbackManager.shared.speak(route.explorationAnnouncement)
+        } else if let route = route(at: point, in: mapView) {
+            FeedbackManager.shared.speak(route.explorationAnnouncement)
+        } else if let crosswalk = crosswalk(at: point, in: mapView) {
             FeedbackManager.shared.stopAllFeedback()
             FeedbackManager.shared.startCrosswalkFeedback()
             let name = crosswalk.properties["name"] as? String ?? "Crosswalk"
             FeedbackManager.shared.speak(name)
+        } else if isIntersectionCenterDeadZone(at: point, in: mapView) {
+            return
         } else if isStreetTouch(at: point, in: mapView) {
             speakStreetName(at: point, in: mapView)
         } else if let endpoint = topFeature(at: point, in: mapView) as? RouteEndpointFeature,
@@ -341,10 +342,6 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
         } else if let endpoint = topFeature(at: point, in: mapView) as? RouteEndpointFeature,
                   endpoint.kind == .destination {
             FeedbackManager.shared.speak(RouteEndpointFeature.intersectionRouteEndAnnouncement)
-        } else if let intersection = topFeature(at: point, in: mapView) as? IntersectionFeature {
-            FeedbackManager.shared.speak(intersection.announcement)
-        } else if let route = topFeature(at: point, in: mapView) as? RouteFeature {
-            FeedbackManager.shared.speak(route.explorationAnnouncement)
         } else if let feature = topFeature(at: point, in: mapView),
                   let name = feature.properties["name"] as? String {
             FeedbackManager.shared.speak(name)
@@ -353,11 +350,6 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
 
     private func performDoubleTap(at point: CGPoint, in mapView: MKMapView) {
         FeedbackManager.shared.playPulseHaptic()
-
-        guard let endpoint = routeEndpoint(at: point, in: mapView), endpoint.kind == .destination else {
-            return
-        }
-
         parent.onBackGesture?()
     }
 
@@ -375,7 +367,16 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
         FeedbackManager.shared.stopAllFeedback()
         let feature = topFeature(at: point, in: mapView)
         activeFeature = feature
+        activeFeedbackKey = feedbackKey(for: feature, at: point, in: mapView)
         beginContinuousFeedback(for: feature, at: point, in: mapView)
+    }
+
+    private func feedbackKey(for feature: MapFeature?, at point: CGPoint, in mapView: MKMapView) -> String {
+        guard let feature else { return "" }
+        if let route = feature as? RouteFeature, isOnRouteCrosswalk(at: point, in: mapView) {
+            return routeCrosswalkFeedbackKey(for: route)
+        }
+        return feature.id
     }
 
     private func updateFeedback(at point: CGPoint, in mapView: MKMapView) {
@@ -394,9 +395,42 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
             activeFeature = nil
         }
 
-        if let crosswalk = crosswalk(at: point, in: mapView) {
-            if activeFeature?.id != crosswalk.id {
+        if isIntersectionCenterDeadZone(at: point, in: mapView) {
+            guard activeFeature != nil else { return }
+            FeedbackManager.shared.stopAllFeedback()
+            activeFeature = nil
+            return
+        }
+
+        if isOnRouteCrosswalk(at: point, in: mapView), let route = route(at: point, in: mapView) {
+            let key = routeCrosswalkFeedbackKey(for: route)
+            if activeFeedbackKey != key {
                 FeedbackManager.shared.stopAllFeedback()
+                activeFeedbackKey = key
+                activeFeature = route
+                FeedbackManager.shared.speak(route.explorationAnnouncement)
+            }
+            FeedbackManager.shared.startRouteOverCrosswalkFeedback()
+            return
+        }
+
+        if let route = route(at: point, in: mapView) {
+            let key = route.id
+            if activeFeedbackKey != key {
+                FeedbackManager.shared.stopAllFeedback()
+                activeFeedbackKey = key
+                activeFeature = route
+                FeedbackManager.shared.startRoutePulsing()
+                FeedbackManager.shared.speak(route.explorationAnnouncement)
+            }
+            return
+        }
+
+        if let crosswalk = crosswalk(at: point, in: mapView) {
+            let key = crosswalk.id
+            if activeFeedbackKey != key {
+                FeedbackManager.shared.stopAllFeedback()
+                activeFeedbackKey = key
                 activeFeature = crosswalk
                 FeedbackManager.shared.startCrosswalkFeedback()
             } else if !FeedbackManager.shared.isCrosswalkPulsing {
@@ -406,18 +440,28 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
         }
 
         let feature = topFeature(at: point, in: mapView)
-        guard feature?.id != activeFeature?.id else { return }
+        let key = feature?.id ?? ""
+        guard key != activeFeedbackKey else { return }
 
         FeedbackManager.shared.stopAllFeedback()
+        activeFeedbackKey = key
         activeFeature = feature
         beginContinuousFeedback(for: feature, at: point, in: mapView)
     }
 
+    private func isOnRouteCrosswalk(at point: CGPoint, in mapView: MKMapView) -> Bool {
+        route(at: point, in: mapView) != nil && crosswalk(at: point, in: mapView) != nil
+    }
+
+    private func routeCrosswalkFeedbackKey(for route: RouteFeature) -> String {
+        "\(route.id)_on_crosswalk"
+    }
+
     private func topFeature(at point: CGPoint, in mapView: MKMapView) -> MapFeature? {
         if let endpoint = routeEndpoint(at: point, in: mapView) { return endpoint }
-        if let intersection = intersection(at: point, in: mapView) { return intersection }
-        if let crosswalk = crosswalk(at: point, in: mapView) { return crosswalk }
         if let route = route(at: point, in: mapView) { return route }
+        if let crosswalk = crosswalk(at: point, in: mapView) { return crosswalk }
+        if isIntersectionCenterDeadZone(at: point, in: mapView) { return nil }
         if let sidewalk = sidewalk(at: point, in: mapView) { return sidewalk }
         if let corridor = corridor(at: point, in: mapView) { return corridor }
         return nil
@@ -438,9 +482,6 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
             } else {
                 FeedbackManager.shared.speak(endpoint.announcement)
             }
-        case let intersection as IntersectionFeature:
-            FeedbackManager.shared.startContinuousPulsing()
-            FeedbackManager.shared.speak(intersection.announcement)
         case is CrosswalkFeature:
             FeedbackManager.shared.startCrosswalkFeedback()
             if let crosswalk = feature as? CrosswalkFeature,
@@ -450,7 +491,11 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
                 FeedbackManager.shared.speak("Crosswalk")
             }
         case let route as RouteFeature:
-            FeedbackManager.shared.startRoutePulsing()
+            if isOnRouteCrosswalk(at: point, in: mapView) {
+                FeedbackManager.shared.startRouteOverCrosswalkFeedback()
+            } else {
+                FeedbackManager.shared.startRoutePulsing()
+            }
             FeedbackManager.shared.speak(route.explorationAnnouncement)
         case is SidewalkFeature:
             applySidewalkFeedback(at: point, in: mapView)
@@ -524,6 +569,7 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
     private func stopFeedback() {
         FeedbackManager.shared.stopAllFeedback()
         activeFeature = nil
+        activeFeedbackKey = ""
         announcedDestinationEnd = false
     }
 
@@ -569,16 +615,16 @@ class IntersectionDetailCoordinator: NSObject, MKMapViewDelegate, AccessibleMapT
         return nil
     }
 
-    private func intersection(at point: CGPoint, in mapView: MKMapView) -> IntersectionFeature? {
-        let half = PhysicalDimensions.mmToPoints(MapIntersectionStyle.sideMM) / 2
-        let threshold = max(half, 22)
-        for feature in currentIntersections {
-            let center = mapView.convert(feature.coordinate, toPointTo: nil)
-            if hypot(point.x - center.x, point.y - center.y) <= threshold {
-                return feature
-            }
-        }
-        return nil
+    private func isIntersectionCenterDeadZone(at point: CGPoint, in mapView: MKMapView) -> Bool {
+        let center = mapView.convert(
+            CLLocationCoordinate2D(
+                latitude: (MapFixedViewport.verticalFlipSum - MapIntersectionLayout.center) / 100_000.0,
+                longitude: MapIntersectionLayout.center / 100_000.0
+            ),
+            toPointTo: nil
+        )
+        let half = PhysicalDimensions.mmToPoints(MapIntersectionDetailStyle.roadLineWidthMM) / 2
+        return abs(point.x - center.x) <= half && abs(point.y - center.y) <= half
     }
 
     private func crosswalk(at point: CGPoint, in mapView: MKMapView) -> CrosswalkFeature? {

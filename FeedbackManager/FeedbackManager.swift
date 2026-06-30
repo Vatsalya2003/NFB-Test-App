@@ -18,6 +18,8 @@ class FeedbackManager {
     var isPlayingContinuousSound = false
     private var isPulsingHaptic = false
     private(set) var isCrosswalkPulsing = false
+    private var isCrosswalkAudioActive = false
+    var isRouteOverCrosswalkFeedback = false
     private var routeTurnDingWorkItem: DispatchWorkItem?
     
     var presentationMode: LandmarkPresentationMode {
@@ -158,30 +160,57 @@ class FeedbackManager {
         stopContinuousSound()
         stopContinuousPulsing()
         stopRoutePulsing()
+        isRouteOverCrosswalkFeedback = false
 
         isCrosswalkPulsing = true
         hapticService.startCrosswalkPulsing()
-
-        audioService.playCrosswalkTick()
-        crosswalkTickTimer?.invalidate()
-        crosswalkTickTimer = Timer.scheduledTimer(withTimeInterval: 0.17, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                guard let self, self.isCrosswalkPulsing else { return }
-                self.audioService.playCrosswalkTick()
-            }
-        }
+        startCrosswalkAudioTicks()
 
         print("Started crosswalk tic-tic feedback")
     }
 
-    func stopCrosswalkFeedback() {
-        guard isCrosswalkPulsing else { return }
-        isCrosswalkPulsing = false
+    /// Crosswalk tick audio only — used when route haptics take priority on a shared crosswalk.
+    func startCrosswalkAudioTicks() {
+        isCrosswalkAudioActive = true
+        audioService.playCrosswalkTick()
+        crosswalkTickTimer?.invalidate()
+        crosswalkTickTimer = Timer.scheduledTimer(withTimeInterval: 0.17, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, self.isCrosswalkPulsing || self.isCrosswalkAudioActive else { return }
+                self.audioService.playCrosswalkTick()
+            }
+        }
+    }
+
+    func stopCrosswalkAudioTicks() {
+        isCrosswalkAudioActive = false
         crosswalkTickTimer?.invalidate()
         crosswalkTickTimer = nil
         audioService.stopCrosswalkAudio()
+    }
+
+    func stopCrosswalkFeedback() {
+        guard isCrosswalkPulsing || isCrosswalkAudioActive else { return }
+        isCrosswalkPulsing = false
+        isRouteOverCrosswalkFeedback = false
         hapticService.stopCrosswalkPulsing()
+        stopCrosswalkAudioTicks()
         print("Stopped crosswalk feedback")
+    }
+
+    /// Route pulsing haptics plus crosswalk tick audio (no crosswalk haptics).
+    func startRouteOverCrosswalkFeedback() {
+        stopContinuousSound()
+        stopContinuousPulsing()
+        hapticService.stopCrosswalkPulsing()
+        isCrosswalkPulsing = false
+
+        if !isCrosswalkAudioActive {
+            startCrosswalkAudioTicks()
+        }
+        isRouteOverCrosswalkFeedback = true
+        hapticService.startRouteVibration()
+        print("Started route-over-crosswalk feedback (route haptics + crosswalk audio)")
     }
     
     // MARK: - Single Pulse (for taps)
@@ -203,6 +232,8 @@ class FeedbackManager {
         crosswalkTickTimer?.invalidate()
         crosswalkTickTimer = nil
         isCrosswalkPulsing = false
+        isCrosswalkAudioActive = false
+        isRouteOverCrosswalkFeedback = false
         audioService.stopCrosswalkAudio()
         hapticService.stopCrosswalkPulsing()
 
@@ -255,6 +286,8 @@ class FeedbackManager {
         isPlayingContinuousSound = false
         isPulsingHaptic = false
         isCrosswalkPulsing = false
+        isCrosswalkAudioActive = false
+        isRouteOverCrosswalkFeedback = false
         continuousVibrationStyle = nil
 
         print("Stopped ALL feedback")

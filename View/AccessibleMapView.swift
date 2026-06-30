@@ -94,7 +94,7 @@ class AccessibleMapView: MKMapView {
 
     private func configureAccessibility() {
         configureAccessibility(
-            label: "Map overview",
+            label: "Map Overview",
             hint: "Drag to explore. Double tap a route intersection for detail."
         )
     }

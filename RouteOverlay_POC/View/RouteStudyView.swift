@@ -14,6 +14,7 @@ struct RouteStudyView: View {
     @State private var mapFeatures: [MapFeature] = []
     @State private var routes: [RouteFeature] = []
     @State private var hasAnnouncedScreenIntro = false
+    @State private var hasAnnouncedMapOverviewThisVisit = false
     @State private var intersectionZoomSelection: IntersectionZoomSelection?
     /// Keeps the CSV session alive while intersection detail is on the navigation stack.
     @State private var holdSessionForIntersection = false
@@ -59,6 +60,7 @@ struct RouteStudyView: View {
         }
         .onAppear {
             setupView()
+            announceMapOverviewIfNeeded()
             DataService.shared.startSession(routeTitle: title, routeFile: routeFile)
         }
         .onReceive(NotificationCenter.default.publisher(for: UIAccessibility.voiceOverStatusDidChangeNotification)) { _ in
@@ -68,9 +70,8 @@ struct RouteStudyView: View {
             if newValue == nil {
                 holdSessionForIntersection = false
                 AccessibleMapView.suppressVoiceOverLayoutFocus = true
-                if UIAccessibility.isVoiceOverRunning {
-                    UIAccessibility.post(notification: .announcement, argument: "Map overview")
-                }
+                hasAnnouncedMapOverviewThisVisit = false
+                announceMapOverviewIfNeeded()
             }
         }
         .onDisappear {
@@ -115,21 +116,21 @@ struct RouteStudyView: View {
         }
     }
 
+    private func announceMapOverviewIfNeeded() {
+        guard !hasAnnouncedMapOverviewThisVisit else { return }
+        hasAnnouncedMapOverviewThisVisit = true
+        MapViewAnnouncement.announce(MapViewAnnouncement.mapOverview)
+    }
+
     private func announceScreenIntroIfNeeded() {
         guard UIAccessibility.isVoiceOverRunning, !hasAnnouncedScreenIntro else { return }
         hasAnnouncedScreenIntro = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            let message = "Map overview"
-            UIAccessibility.post(notification: .screenChanged, argument: message)
-        }
+        MapViewAnnouncement.announce(MapViewAnnouncement.mapOverview)
     }
 
     private func performBackNavigation() {
         DataService.shared.endSession()
         FeedbackManager.shared.stopAllFeedback()
-        if UIAccessibility.isVoiceOverRunning {
-            UIAccessibility.post(notification: .announcement, argument: "Map overview")
-        }
         presentationMode.wrappedValue.dismiss()
     }
 }

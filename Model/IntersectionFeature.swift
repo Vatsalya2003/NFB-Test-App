@@ -29,11 +29,42 @@ class IntersectionFeature: NSObject, MapFeature, MKAnnotation {
         guard let name, !name.isEmpty else {
             return "\(wayLabel) intersection"
         }
-        let parts = name.components(separatedBy: " and ")
+        let parts = streetNameParts(from: name)
         if parts.count >= 2 {
-            return "\(wayLabel) intersection of \(parts[0]) and \(parts[1])"
+            return "\(wayLabel) intersection of \(formattedStreetPair(parts))"
         }
         return "\(wayLabel) intersection of \(name)"
+    }
+
+    /// Navigation announcement when entering an intersection detail screen.
+    static func viewAnnouncement(name: String?) -> String {
+        guard let name, !name.isEmpty else {
+            return "Intersection view"
+        }
+        let parts = streetNameParts(from: name)
+        if parts.count >= 2 {
+            return "Intersection view of \(formattedStreetPair(parts)) streets"
+        }
+        return "Intersection view of \(name)"
+    }
+
+    /// e.g. "East 1st Street, and Brazos Street" — comma adds a brief pause for TTS.
+    static func formattedStreetPair(from name: String) -> String {
+        let parts = streetNameParts(from: name)
+        guard parts.count >= 2 else { return name }
+        return formattedStreetPair(parts)
+    }
+
+    private static func formattedStreetPair(_ parts: [String]) -> String {
+        "\(parts[0]), and \(parts[1])"
+    }
+
+    private static func streetNameParts(from name: String) -> [String] {
+        let normalized = name.replacingOccurrences(of: " & ", with: " and ")
+        return normalized
+            .components(separatedBy: " and ")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
     }
 
 

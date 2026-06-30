@@ -39,7 +39,7 @@ struct RouteMapView: UIViewRepresentable {
         let mapView = AccessibleMapView()
         mapView.touchDelegate = context.coordinator
         mapView.configureAccessibility(
-            label: "Map overview",
+            label: "Map Overview",
             hint: "Drag to explore. Double tap a route intersection for detail."
         )
         mapView.layoutMargins = .zero
@@ -90,7 +90,7 @@ struct RouteMapView: UIViewRepresentable {
             accessibleMap.onAccessibilityEscape = onThreeFingerSwipe
             accessibleMap.touchDelegate = context.coordinator
             accessibleMap.configureAccessibility(
-                label: "Map overview",
+                label: "Map Overview",
                 hint: "Drag to explore. Double tap a route intersection for detail."
             )
         }
@@ -170,9 +170,9 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
     var currentRoutes: [RouteFeature] = []
 
     private var activeFeature: MapFeature?
-    private var activeRouteSegmentIndex: Int?
+    private var activeRouteLegIndex: Int?
     private var activeFeedbackKey: String = ""
-    private var lastAnnouncedRouteSegmentKey: String?
+    private var lastAnnouncedRouteLegKey: String?
     private var lastUpdateTime: TimeInterval = 0
     private let updateThreshold: TimeInterval = 0.1
     private var fingerIsExploring = false
@@ -329,7 +329,7 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
         } else if let intersection = topFeature(at: point, in: mapView) as? IntersectionFeature {
             FeedbackManager.shared.speak(intersection.announcement)
         } else if let route = topFeature(at: point, in: mapView) as? RouteFeature {
-            FeedbackManager.shared.speak(route.explorationAnnouncement(forSegmentIndex: activeRouteSegmentIndex ?? 0))
+            FeedbackManager.shared.speak(route.explorationAnnouncement(forLegIndex: activeRouteLegIndex ?? 0))
         } else if let feature = topFeature(at: point, in: mapView),
                   let name = feature.properties["name"] as? String {
             FeedbackManager.shared.speak(name)
@@ -359,13 +359,13 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
         FeedbackManager.shared.stopAllFeedback()
         let feature = topFeature(at: point, in: mapView)
         activeFeature = feature
-        activeFeedbackKey = feedbackKey(for: feature, segmentIndex: activeRouteSegmentIndex)
+        activeFeedbackKey = feedbackKey(for: feature, legIndex: activeRouteLegIndex)
         beginContinuousFeedback(for: feature)
     }
 
     private func updateFeedback(at point: CGPoint, in mapView: MKMapView) {
         let feature = topFeature(at: point, in: mapView)
-        let key = feedbackKey(for: feature, segmentIndex: activeRouteSegmentIndex)
+        let key = feedbackKey(for: feature, legIndex: activeRouteLegIndex)
         guard key != activeFeedbackKey else { return }
 
         FeedbackManager.shared.stopAllFeedback()
@@ -374,10 +374,10 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
         beginContinuousFeedback(for: feature)
     }
 
-    private func feedbackKey(for feature: MapFeature?, segmentIndex: Int?) -> String {
+    private func feedbackKey(for feature: MapFeature?, legIndex: Int?) -> String {
         guard let feature else { return "" }
-        if feature is RouteFeature, let segmentIndex {
-            return "\(feature.id)_segment_\(segmentIndex)"
+        if feature is RouteFeature, let legIndex {
+            return "\(feature.id)_leg_\(legIndex)"
         }
         return feature.id
     }
@@ -388,10 +388,10 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
         if let landmark = landmark(at: point, in: mapView) { return landmark }
         if let intersection = intersection(at: point, in: mapView) { return intersection }
         if let hit = routeHit(at: point, in: mapView) {
-            activeRouteSegmentIndex = hit.segmentIndex
+            activeRouteLegIndex = routeLegIndex(at: point, route: hit.route, mapView: mapView)
             return hit.route
         }
-        activeRouteSegmentIndex = nil
+        activeRouteLegIndex = nil
         return corridor(at: point, in: mapView)
     }
 
@@ -413,7 +413,7 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
             FeedbackManager.shared.speak(intersection.announcement)
         case let route as RouteFeature:
             FeedbackManager.shared.startRoutePulsing()
-            announceRouteIfNeeded(for: route, segmentIndex: activeRouteSegmentIndex ?? 0)
+            announceRouteIfNeeded(for: route, legIndex: activeRouteLegIndex ?? 0)
         default:
             FeedbackManager.shared.startContinuousSound()
             if let name = feature.properties["name"] as? String {
@@ -425,21 +425,21 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
     private func stopFeedback() {
         FeedbackManager.shared.stopAllFeedback()
         activeFeature = nil
-        activeRouteSegmentIndex = nil
+        activeRouteLegIndex = nil
         activeFeedbackKey = ""
-        lastAnnouncedRouteSegmentKey = nil
+        lastAnnouncedRouteLegKey = nil
     }
 
-    private func routeSegmentKey(for route: RouteFeature, segmentIndex: Int) -> String {
-        "\(route.id)_segment_\(segmentIndex)"
+    private func routeLegKey(for route: RouteFeature, legIndex: Int) -> String {
+        "\(route.id)_leg_\(legIndex)"
     }
 
-    /// Speak route guidance once per segment while tracing — avoids repeating "Route" on the same leg.
-    private func announceRouteIfNeeded(for route: RouteFeature, segmentIndex: Int) {
-        let key = routeSegmentKey(for: route, segmentIndex: segmentIndex)
-        guard key != lastAnnouncedRouteSegmentKey else { return }
-        lastAnnouncedRouteSegmentKey = key
-        FeedbackManager.shared.speak(route.explorationAnnouncement(forSegmentIndex: segmentIndex))
+    /// Speak route guidance once per waypoint leg while tracing.
+    private func announceRouteIfNeeded(for route: RouteFeature, legIndex: Int) {
+        let key = routeLegKey(for: route, legIndex: legIndex)
+        guard key != lastAnnouncedRouteLegKey else { return }
+        lastAnnouncedRouteLegKey = key
+        FeedbackManager.shared.speak(route.explorationAnnouncement(forLegIndex: legIndex))
     }
 
     // MARK: Hit Testing
@@ -496,12 +496,11 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
 
     private struct RouteHit {
         let route: RouteFeature
-        let segmentIndex: Int
     }
 
     private func routeHit(at point: CGPoint, in mapView: MKMapView) -> RouteHit? {
         let threshold = max(PhysicalDimensions.mmToPoints(MapRouteStyle.lineWidthMM) / 2, 22)
-        var best: (route: RouteFeature, segmentIndex: Int, distance: CGFloat)?
+        var best: (route: RouteFeature, distance: CGFloat)?
 
         for route in currentRoutes {
             for i in 0..<(route.coordinates.count - 1) {
@@ -509,13 +508,97 @@ class RouteCoordinator: NSObject, MKMapViewDelegate, AccessibleMapTouchDelegate 
                 let end = mapView.convert(route.coordinates[i + 1], toPointTo: nil)
                 let distance = distanceFromPoint(point, toLineFrom: start, to: end)
                 if distance < threshold, best == nil || distance < best!.distance {
-                    best = (route, i, distance)
+                    best = (route, distance)
                 }
             }
         }
 
         guard let best else { return nil }
-        return RouteHit(route: best.route, segmentIndex: best.segmentIndex)
+        return RouteHit(route: best.route)
+    }
+
+    // MARK: Route leg geometry (departure → wp0 → wp1 → … → destination)
+
+    private func routeLegIndex(at point: CGPoint, route: RouteFeature, mapView: MKMapView) -> Int {
+        let boundaries = routeLegBoundaries(for: route, mapView: mapView)
+        guard boundaries.count >= 2 else { return 0 }
+
+        let progress = arcLengthAlongRoute(at: point, route: route, mapView: mapView)
+        let epsilon: CGFloat = 6
+
+        for leg in (0..<(boundaries.count - 1)).reversed() {
+            if progress + epsilon >= boundaries[leg] {
+                return leg
+            }
+        }
+        return 0
+    }
+
+    private func routeLegBoundaries(for route: RouteFeature, mapView: MKMapView) -> [CGFloat] {
+        var boundaries: [CGFloat] = [0]
+        for waypointID in route.waypoints {
+            guard let intersection = currentIntersections.first(where: { $0.id == waypointID }) else { continue }
+            let distance = arcLengthAlongRoute(
+                to: intersection.coordinate,
+                route: route,
+                mapView: mapView
+            )
+            if let last = boundaries.last, distance > last + 1 {
+                boundaries.append(distance)
+            }
+        }
+        let total = totalRouteLength(route: route, mapView: mapView)
+        if boundaries.last! < total - 1 {
+            boundaries.append(total)
+        }
+        return boundaries
+    }
+
+    private func totalRouteLength(route: RouteFeature, mapView: MKMapView) -> CGFloat {
+        var length: CGFloat = 0
+        for i in 0..<(route.coordinates.count - 1) {
+            let start = mapView.convert(route.coordinates[i], toPointTo: nil)
+            let end = mapView.convert(route.coordinates[i + 1], toPointTo: nil)
+            length += hypot(end.x - start.x, end.y - start.y)
+        }
+        return length
+    }
+
+    private func arcLengthAlongRoute(at point: CGPoint, route: RouteFeature, mapView: MKMapView) -> CGFloat {
+        var accumulated: CGFloat = 0
+        var bestDistance = CGFloat.infinity
+        var bestArcLength: CGFloat = 0
+
+        for i in 0..<(route.coordinates.count - 1) {
+            let start = mapView.convert(route.coordinates[i], toPointTo: nil)
+            let end = mapView.convert(route.coordinates[i + 1], toPointTo: nil)
+            let dx = end.x - start.x
+            let dy = end.y - start.y
+            let segLen = hypot(dx, dy)
+
+            if segLen > 0 {
+                let t = max(0, min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / (segLen * segLen)))
+                let proj = CGPoint(x: start.x + t * dx, y: start.y + t * dy)
+                let dist = hypot(point.x - proj.x, point.y - proj.y)
+                if dist < bestDistance {
+                    bestDistance = dist
+                    bestArcLength = accumulated + t * segLen
+                }
+            }
+
+            accumulated += segLen
+        }
+
+        return bestArcLength
+    }
+
+    private func arcLengthAlongRoute(
+        to coordinate: CLLocationCoordinate2D,
+        route: RouteFeature,
+        mapView: MKMapView
+    ) -> CGFloat {
+        let point = mapView.convert(coordinate, toPointTo: nil)
+        return arcLengthAlongRoute(at: point, route: route, mapView: mapView)
     }
 
     private func route(at point: CGPoint, in mapView: MKMapView) -> RouteFeature? {
