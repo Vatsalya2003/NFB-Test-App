@@ -20,7 +20,10 @@ class FeedbackManager {
     private(set) var isCrosswalkPulsing = false
     private var isCrosswalkAudioActive = false
     var isRouteOverCrosswalkFeedback = false
+    var isStreetOverCrosswalkFeedback = false
     private var routeTurnDingWorkItem: DispatchWorkItem?
+    private var routeTurnRepeatingTimer: Timer?
+    private(set) var isRouteTurnDingActive = false
     
     var presentationMode: LandmarkPresentationMode {
         get { speechService.presentationMode }
@@ -193,6 +196,7 @@ class FeedbackManager {
         guard isCrosswalkPulsing || isCrosswalkAudioActive else { return }
         isCrosswalkPulsing = false
         isRouteOverCrosswalkFeedback = false
+        isStreetOverCrosswalkFeedback = false
         hapticService.stopCrosswalkPulsing()
         stopCrosswalkAudioTicks()
         print("Stopped crosswalk feedback")
@@ -204,6 +208,7 @@ class FeedbackManager {
         stopContinuousPulsing()
         hapticService.stopCrosswalkPulsing()
         isCrosswalkPulsing = false
+        isStreetOverCrosswalkFeedback = false
 
         if !isCrosswalkAudioActive {
             startCrosswalkAudioTicks()
@@ -211,6 +216,24 @@ class FeedbackManager {
         isRouteOverCrosswalkFeedback = true
         hapticService.startRouteVibration()
         print("Started route-over-crosswalk feedback (route haptics + crosswalk audio)")
+    }
+
+    /// Street heavy-buzz haptics plus crosswalk tick audio (no crosswalk haptics).
+    /// Used when a crosswalk overlaps a corridor — user feels the street underneath + hears clicks.
+    func startStreetOverCrosswalkFeedback() {
+        stopContinuousPulsing()
+        stopRoutePulsing()
+        hapticService.stopCrosswalkPulsing()
+        isCrosswalkPulsing = false
+        isRouteOverCrosswalkFeedback = false
+
+        isStreetOverCrosswalkFeedback = true
+        isPlayingContinuousSound = true
+        continuousVibrationStyle = .heavyBuzz
+        hapticService.startContinuousVibration(style: .heavyBuzz)
+
+        startCrosswalkAudioTicks()
+        print("Started street-over-crosswalk feedback (street haptics + crosswalk audio)")
     }
     
     // MARK: - Single Pulse (for taps)
@@ -256,6 +279,39 @@ class FeedbackManager {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.08, execute: work)
     }
     
+    // MARK: - Repeating Route Turn Ding (while finger stays on dot)
+
+    func startRouteTurnFeedback() {
+        guard !isRouteTurnDingActive else { return }
+
+        stopCrosswalkFeedback()
+        stopRoutePulsing()
+        stopContinuousSound()
+        stopContinuousPulsing()
+        speechService.stopAllFeedback()
+
+        isRouteTurnDingActive = true
+
+        audioService.playRouteTurnDing()
+        hapticService.playRouteTurnHapticTap()
+
+        routeTurnRepeatingTimer?.invalidate()
+        routeTurnRepeatingTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, self.isRouteTurnDingActive else { return }
+                self.audioService.playRouteTurnDing()
+                self.hapticService.playRouteTurnHapticTap()
+            }
+        }
+        print("Started repeating route turn ding")
+    }
+
+    func stopRouteTurnFeedback() {
+        isRouteTurnDingActive = false
+        routeTurnRepeatingTimer?.invalidate()
+        routeTurnRepeatingTimer = nil
+    }
+
     // MARK: - Speech (Direct method using AudioService)
     func speak(_ text: String) {
         audioService.speak(text)
@@ -277,6 +333,8 @@ class FeedbackManager {
     func stopAllFeedback() {
         routeTurnDingWorkItem?.cancel()
         routeTurnDingWorkItem = nil
+        routeTurnRepeatingTimer?.invalidate()
+        routeTurnRepeatingTimer = nil
         crosswalkTickTimer?.invalidate()
         crosswalkTickTimer = nil
         audioService.stopCrosswalkAudio()
@@ -288,6 +346,8 @@ class FeedbackManager {
         isCrosswalkPulsing = false
         isCrosswalkAudioActive = false
         isRouteOverCrosswalkFeedback = false
+        isStreetOverCrosswalkFeedback = false
+        isRouteTurnDingActive = false
         continuousVibrationStyle = nil
 
         print("Stopped ALL feedback")
